@@ -10,9 +10,15 @@ import {
 import Grid from "@mui/material/Grid";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import ticketService from "../../services/ticket-service";
+import ConfirmationDialog from "../../components/PopoutDialogs/dialog";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { TimePicker } from "@mui/x-date-pickers/TimePicker";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
 
 const RequestForm = () => {
   const [fileName, setFileName] = useState("");
@@ -21,6 +27,7 @@ const RequestForm = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [selectedOffice, setSelectedOffice] = useState("");
+  const [openDialog, setOpenDialog] = useState(false);
 
   const handleGetAll = () => {
     setLoading(true);
@@ -47,15 +54,14 @@ const RequestForm = () => {
     const file = event.target.files[0];
 
     if (file) {
-      console.log("📌 File Selected:", file.name); // Debugging log
-      setSelectedFile(file); // Store actual file object
-      setFileName(file.name); // Store file name for UI
+      setSelectedFile(file);
+      setFileName(file.name);
     } else {
       console.log("⚠️ No file selected.");
     }
   };
 
-  const [formData, setFormData] = useState({
+  const initialFormState = {
     requestedBy: "",
     email: "",
     officeId: "",
@@ -64,79 +70,109 @@ const RequestForm = () => {
     purpose: "",
     departureDate: null,
     arrivalDate: null,
+    departureTime: null,
+    arrivalTime: null,
     authorizedPassengers: "",
     remarks: "",
-  });
+  };
+
+  const [formData, setFormData] = useState(initialFormState);
 
   const handleChange = (event) => {
     setFormData({ ...formData, [event.target.name]: event.target.value });
   };
 
-  const handleDateChange = (name, value) => {
-    setFormData({ ...formData, [name]: value });
+  const handleDateChange = (field, value) => {
+    if (!value) {
+      console.log(`Selected ${field}: No value`);
+      setFormData((prev) => ({ ...prev, [field]: null }));
+      return;
+    }
+
+    const parsedValue = dayjs(value); // ✅ Ensure it's a Day.js object
+
+    if (field === "departureTime" || field === "arrivalTime") {
+      const dateField =
+        field === "departureTime" ? "departureDate" : "arrivalDate";
+      const selectedDate = formData[dateField]
+        ? dayjs(formData[dateField])
+        : dayjs();
+
+      const mergedDateTime = selectedDate
+        .hour(parsedValue.hour())
+        .minute(parsedValue.minute())
+        .second(0);
+
+      console.log(`Selected ${field} (Local Time):`, mergedDateTime.format());
+
+      setFormData((prev) => ({
+        ...prev,
+        [field]: mergedDateTime.toDate(), // ✅ Store as Date object
+      }));
+    } else {
+      console.log(`Selected ${field} (Local Time):`, parsedValue.format());
+
+      setFormData((prev) => ({
+        ...prev,
+        [field]: parsedValue.toDate(), // ✅ Store as Date object
+      }));
+    }
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
+    setOpenDialog(true);
+    setLoading(true);
+
     const data = new FormData();
+
+    // ✅ Ensure we're creating Date objects
+    const parseToDate = (value) => (value ? new Date(value) : null);
+
     const updatedFormData = {
       ...formData,
       officeId: selectedOffice,
-      departureDate: formData.departureDate
-        ? formData.departureDate.toISOString()
-        : null,
-      arrivalDate: formData.arrivalDate
-        ? formData.arrivalDate.toISOString()
-        : null,
+
+      // ✅ Convert strings back to Date objects before sending
+      departureDate: parseToDate(formData.departureDate),
+      arrivalDate: parseToDate(formData.arrivalDate),
+      departureTime: parseToDate(formData.departureTime),
+      arrivalTime: parseToDate(formData.arrivalTime),
     };
 
     Object.keys(updatedFormData).forEach((key) => {
       data.append(key, updatedFormData[key]);
     });
 
-    if (selectedOffice) {
-      data.append("officeId", selectedOffice);
-    }
-
     if (selectedFile) {
-      console.log("✅ Adding File to FormData:", selectedFile.name);
       data.append("file", selectedFile);
-    } else {
-      console.log("⚠️ No file selected.");
-    }
-
-    // 🚀 Debugging Logs
-    console.log("📌 Request Body (Before Submission):", updatedFormData);
-    console.log("📌 Selected Office:", selectedOffice);
-    console.log(
-      "📌 Selected File:",
-      selectedFile ? selectedFile.name : "No file"
-    );
-
-    console.log("📌 FormData Contents:");
-    for (let pair of data.entries()) {
-      console.log(`${pair[0]}:`, pair[1]);
     }
 
     try {
-      const response = await ticketService.submitTicket(data);
-      console.log("Ticket Submitted:", response.data);
+      await ticketService.submitTicket(data);
+      setFormData(initialFormState);
+      setSelectedFile(null);
+      setFileName("");
+      setSelectedOffice("");
     } catch (error) {
       console.error("Error submitting ticket:", error);
+      setLoading(false);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Container maxWidth="md">
+      <Container maxWidth="lg">
         <Paper elevation={3} sx={{ padding: 4, marginTop: 4 }}>
           <Typography
             variant="h5"
             align="center"
-            sx={{ mb: 5, fontWeight: "bold" }}
+            sx={{ mb: 5, fontWeight: "bold", fontFamily: "Poppins" }}
           >
-            REQUEST FORM
+            TRIP TICKET REQUEST FORM
           </Typography>
 
           <form onSubmit={handleSubmit}>
@@ -217,26 +253,57 @@ const RequestForm = () => {
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <DateTimePicker
-                  fullWidth
+                <DatePicker
                   label="Departure Date"
-                  value={formData.departureDate}
-                  onChange={(value) => handleDateChange("departureDate", value)}
-                  renderInput={(params) => (
-                    <TextField {...params} fullWidth required />
-                  )}
+                  value={
+                    formData.departureDate
+                      ? dayjs(formData.departureDate)
+                      : null
+                  }
+                  onChange={(value) =>
+                    handleDateChange("departureDate", value?.toDate() || null)
+                  }
                   sx={{ width: "100%" }}
                 />
               </Grid>
+
               <Grid item xs={12} sm={6}>
-                <DateTimePicker
-                  fullWidth
+                <DatePicker
                   label="Arrival Date"
-                  value={formData.arrivalDate}
-                  onChange={(value) => handleDateChange("arrivalDate", value)}
-                  renderInput={(params) => (
-                    <TextField {...params} fullWidth required />
-                  )}
+                  value={
+                    formData.arrivalDate ? dayjs(formData.arrivalDate) : null
+                  }
+                  onChange={(value) =>
+                    handleDateChange("arrivalDate", value?.toDate() || null)
+                  }
+                  sx={{ width: "100%" }}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TimePicker
+                  label="Departure Time"
+                  value={
+                    formData.departureTime
+                      ? dayjs(formData.departureTime)
+                      : null
+                  }
+                  onChange={(value) =>
+                    handleDateChange("departureTime", value?.toDate() || null)
+                  }
+                  sx={{ width: "100%" }}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TimePicker
+                  label="Arrival Time"
+                  value={
+                    formData.arrivalTime ? dayjs(formData.arrivalTime) : null
+                  }
+                  onChange={(value) =>
+                    handleDateChange("arrivalTime", value?.toDate() || null)
+                  }
                   sx={{ width: "100%" }}
                 />
               </Grid>
@@ -272,6 +339,7 @@ const RequestForm = () => {
                   sx={{
                     width: "100%",
                     my: 1,
+                    backgroundColor: "black",
                   }}
                   size="large"
                 >
@@ -288,13 +356,27 @@ const RequestForm = () => {
                   slotProps={{ input: { readOnly: true } }}
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid
+                item
+                xs={12}
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  textAlign: "center",
+                }}
+              >
                 <Button
                   type="submit"
                   variant="contained"
                   color="primary"
-                  fullWidth
                   size="large"
+                  sx={{
+                    width: "60%",
+                    padding: 2,
+                    my: 2,
+                    backgroundColor: "black",
+                  }}
                 >
                   Submit Request
                 </Button>
@@ -303,6 +385,14 @@ const RequestForm = () => {
           </form>
         </Paper>
       </Container>
+
+      <ConfirmationDialog
+        open={openDialog}
+        title={loading ? "Processing...." : "Submission Success!"}
+        message="Your request has been submitted successfully!"
+        onConfirm={() => setOpenDialog(false)}
+        onCancel={() => setOpenDialog(false)}
+      />
     </LocalizationProvider>
   );
 };
