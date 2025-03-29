@@ -1,11 +1,24 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
-import { AppBar, Toolbar, Typography, Container, Box } from "@mui/material";
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Container,
+  Box,
+  Tooltip,
+} from "@mui/material";
 import depedLogo from "../assets/deped_logo.png";
 import tripBackground from "../assets/background2.png";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import { useNavigate } from "react-router-dom";
 
 const FormLayout = () => {
+  const navigate = useNavigate();
+
+  const handleRedirectToLogin = () => {
+    navigate("./Authenticate");
+  };
   return (
     <Box
       sx={{
@@ -39,9 +52,11 @@ const FormLayout = () => {
           >
             TRIP TICKETING SYSTEM
           </Typography>
-          <AdminPanelSettingsIcon
-            sx={{ fontSize: { xs: 30, sm: 40 }, color: "white" }}
-          />
+          <Tooltip title="Login" onClick={handleRedirectToLogin}>
+            <AdminPanelSettingsIcon
+              sx={{ fontSize: { xs: 30, sm: 40 }, color: "white" }}
+            />
+          </Tooltip>
         </Toolbar>
       </AppBar>
 
