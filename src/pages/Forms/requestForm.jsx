@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useEffect, useState } from "react";
 import {
   Container,
@@ -8,6 +9,7 @@ import {
   Button,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
+import { useStateContext } from "../../contexts/ContextProvider";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
@@ -20,7 +22,8 @@ import utc from "dayjs/plugin/utc";
 
 dayjs.extend(utc);
 
-const RequestForm = () => {
+const RequestForm = ({ onSubmitSuccess }) => {
+  const { auth, fetchNewTicketsCount } = useStateContext();
   const [fileName, setFileName] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
   const [offices, setOffices] = useState([]);
@@ -28,6 +31,7 @@ const RequestForm = () => {
   const [error, setError] = useState(false);
   const [selectedOffice, setSelectedOffice] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
+  const [refresh, setRefresh] = useState(false);
 
   const handleGetAll = () => {
     setLoading(true);
@@ -127,14 +131,13 @@ const RequestForm = () => {
 
     const data = new FormData();
 
-    // ✅ Ensure we're creating Date objects
+    // Ensure we're creating Date objects
     const parseToDate = (value) => (value ? new Date(value) : null);
 
     const updatedFormData = {
       ...formData,
       officeId: selectedOffice,
 
-      // ✅ Convert strings back to Date objects before sending
       departureDate: parseToDate(formData.departureDate),
       arrivalDate: parseToDate(formData.arrivalDate),
       departureTime: parseToDate(formData.departureTime),
@@ -150,11 +153,24 @@ const RequestForm = () => {
     }
 
     try {
+      // Submit the ticket
       await ticketService.submitTicket(data);
+
+      if (typeof onSubmitSuccess === "function") {
+        onSubmitSuccess();
+      }
+
+      // Reset the form state
       setFormData(initialFormState);
       setSelectedFile(null);
       setFileName("");
       setSelectedOffice("");
+
+      // Clear localStorage to force a fresh data fetch on the admin panel
+      localStorage.removeItem("tripTicketData"); // Clear just the trip ticket data
+
+      // Optionally force the admin panel to re-fetch new data
+      setRefresh(true); // Trigger refresh so that admin panel fetches new data
     } catch (error) {
       console.error("Error submitting ticket:", error);
       setLoading(false);

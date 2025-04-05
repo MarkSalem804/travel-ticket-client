@@ -7,6 +7,10 @@ function getAllOffices() {
   return axios.get(`${BASE_URL}/ticket/getAllOffices`).then((res) => res.data);
 }
 
+function getAllRequests() {
+  return axios.get(`${BASE_URL}/ticket/getAllRequests`).then((res) => res.data);
+}
+
 function submitTicket(formData) {
   return axios.post(`${BASE_URL}/ticket/submitTicket`, formData, {
     headers: {
@@ -18,4 +22,5 @@ function submitTicket(formData) {
 export default {
   submitTicket,
   getAllOffices,
+  getAllRequests,
 };
