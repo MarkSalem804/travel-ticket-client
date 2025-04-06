@@ -11,6 +11,14 @@ function getAllRequests() {
   return axios.get(`${BASE_URL}/ticket/getAllRequests`).then((res) => res.data);
 }
 
+function getAllVehicles() {
+  return axios.get(`${BASE_URL}/ticket/getAllVehicles`).then((res) => res.data);
+}
+
+function getAllDrivers() {
+  return axios.get(`${BASE_URL}/ticket/getAllDrivers`).then((res) => res.data);
+}
+
 function submitTicket(formData) {
   return axios.post(`${BASE_URL}/ticket/submitTicket`, formData, {
     headers: {
@@ -19,8 +27,17 @@ function submitTicket(formData) {
   });
 }
 
+function updateRequest(ticketId, updatedData) {
+  return axios
+    .put(`${BASE_URL}/ticket/updateRequest/${ticketId}`, updatedData)
+    .then((res) => res.data);
+}
+
 export default {
+  updateRequest,
   submitTicket,
   getAllOffices,
   getAllRequests,
+  getAllVehicles,
+  getAllDrivers,
 };

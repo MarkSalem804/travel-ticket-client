@@ -66,7 +66,11 @@ export default function ProfileMenu() {
         onClose={() => setAnchorEl(null)}
       >
         <MenuItem onClick={() => handleOpen()}>Change Password</MenuItem>
-        <MenuItem onClick={() => handleNavigate()}>About Us</MenuItem>
+        <MenuItem
+        // onClick={() => handleNavigate()}
+        >
+          About Us
+        </MenuItem>
         <MenuItem onClick={() => handleLogout()}>Logout</MenuItem>
       </Menu>
       <SnackbarComponent

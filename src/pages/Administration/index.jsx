@@ -27,6 +27,7 @@ import {
 import { useStateContext } from "../../contexts/ContextProvider";
 import AdminTable from "./AdminTable";
 import ticketService from "../../services/ticket-service";
+import UpdateTicketModal from "../../modals/Tickets/UpdateTicketModal";
 
 // import StatBox from "../../../components/Statbox";
 
@@ -37,13 +38,20 @@ export default function Feedbacks() {
   const [error, setError] = useState("");
   const [refresh, setRefresh] = useState(false);
   const [requests, setRequests] = useState([]);
-  const [view, setView] = useState("card");
+  const [view, setView] = useState(localStorage.getItem("view") || "table");
 
   const [statusFilter, setStatusFilter] = useState("");
   const [destinationFilter, setDestinationFilter] = useState("");
 
   const [page, setPage] = useState(0); // Current page
   const [rowsPerPage, setRowsPerPage] = useState(10); // Number of rows per page
+  const [openModal, setOpenModal] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState(null);
+
+  const handleUpdate = (ticket) => {
+    setSelectedTicket(ticket);
+    setOpenModal(true);
+  };
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -52,23 +60,6 @@ export default function Feedbacks() {
         console.log("Fetching fresh data from the server...");
         const response = await ticketService.getAllRequests();
         console.log("New data fetched:", response);
-
-        // Clear localStorage when new data is fetched, so admin always gets fresh data
-        localStorage.removeItem("tripTicketData");
-
-        // Cache the new response data in localStorage
-        localStorage.setItem("tripTicketData", JSON.stringify(response));
-
-        // Find any new tickets and update the count
-        const cachedData =
-          JSON.parse(localStorage.getItem("tripTicketData")) || [];
-        const newTickets = response.filter(
-          (newTicket) =>
-            !cachedData.some((oldTicket) => oldTicket.id === newTicket.id)
-        );
-
-        const newTicketsCount = newTickets.length;
-        updateNewTicketsCount(newTicketsCount);
 
         // Set the fresh response data as the new state
         setData(response);
@@ -81,15 +72,10 @@ export default function Feedbacks() {
       }
     };
 
-    // Check if the admin page needs to refresh the data
-    const cachedData = localStorage.getItem("tripTicketData");
-
-    if (!cachedData || refresh) {
+    if (refresh) {
       fetchRequests();
     } else {
-      // Use cached data if available and no refresh is triggered
-      setData(JSON.parse(cachedData));
-      setLoading(false);
+      fetchRequests();
     }
   }, [refresh, updateNewTicketsCount]);
 
@@ -123,13 +109,11 @@ export default function Feedbacks() {
   };
 
   const formatTime = (dateString) => {
-    // Parse the date string to a Date object (assuming it's in UTC)
     const date = new Date(dateString);
 
-    // If the date is in UTC (like `2025-04-05T13:00:00Z`), adjust to local time by creating a new Date object
     const localTime = new Date(
       date.getTime() + date.getTimezoneOffset() * 60000
-    ); // This converts it to local time
+    );
 
     return localTime.toLocaleTimeString("en-US", {
       hour: "numeric",
@@ -151,6 +135,11 @@ export default function Feedbacks() {
     page * rowsPerPage,
     page * rowsPerPage + rowsPerPage
   );
+
+  const handleViewChange = (newView) => {
+    setView(newView);
+    localStorage.setItem("view", newView); // Save the selected view to localStorage
+  };
 
   return (
     <Box
@@ -194,13 +183,22 @@ export default function Feedbacks() {
       </Box>
 
       <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-        <IconButton onClick={() => setView("list")} sx={{ marginRight: 1 }}>
+        <IconButton
+          onClick={() => handleViewChange("list")}
+          sx={{ marginRight: 1, color: view === "list" ? "blue" : "inherit" }}
+        >
           <ListIcon />
         </IconButton>
-        <IconButton onClick={() => setView("card")}>
+        <IconButton
+          onClick={() => handleViewChange("card")}
+          sx={{ color: view === "card" ? "blue" : "inherit" }}
+        >
           <GridViewIcon />
         </IconButton>
-        <IconButton onClick={() => setView("table")}>
+        <IconButton
+          onClick={() => handleViewChange("table")}
+          sx={{ color: view === "table" ? "blue" : "inherit" }}
+        >
           <TableChartIcon />
         </IconButton>
       </Box>
@@ -208,23 +206,25 @@ export default function Feedbacks() {
       <Box
         boxShadow="3px 2px 15px 3px rgba(100, 100, 100, 0.8)"
         p="1rem"
-        sx={{ backgroundColor: "rgba(240, 240, 240, 1)" }}
+        sx={{
+          backgroundColor: "primary.main",
+          color: "white",
+        }}
       >
-        <Divider>
-          <Typography
-            sx={{
-              textTransform: "uppercase",
-              fontSize: {
-                xs: "12px", // Mobile font size
-                sm: "18px", // Font size for small screens (like tablets)
-                md: "25px", // Default font size for larger screens (like desktops)
-              },
-              fontWeight: "bold",
-            }}
-          >
-            TRIP TICKET AND REQUESTS MANAGEMENT
-          </Typography>
-        </Divider>
+        <Typography
+          sx={{
+            textTransform: "uppercase",
+            fontSize: {
+              xs: "12px",
+              sm: "18px",
+              md: "25px",
+            },
+            fontWeight: "bold",
+            textAlign: "center",
+          }}
+        >
+          TRIP TICKET AND REQUESTS MANAGEMENT
+        </Typography>
       </Box>
 
       <Box
@@ -367,7 +367,19 @@ export default function Feedbacks() {
                     <Typography sx={{ fontSize: "14px" }}>
                       Designation: {ticket.designation}
                     </Typography>
-                    <Typography sx={{ fontSize: "14px" }}>
+                    <Typography
+                      sx={{
+                        fontSize: "14px",
+                        color:
+                          ticket.status === "Approved"
+                            ? "green" // Green for Approved
+                            : ticket.status === "Rejected"
+                            ? "red" // Red for Rejected
+                            : ticket.status === "Pending"
+                            ? "orange" // Orange for Pending
+                            : "black", // Default color if status is something else
+                      }}
+                    >
                       Status: {ticket.status}
                     </Typography>
                   </Box>
@@ -418,31 +430,26 @@ export default function Feedbacks() {
                   }}
                 >
                   <Button
-                    variant="outlined"
-                    color="primary"
-                    sx={{
-                      width: view === "list" ? "10%" : "40%", // Smaller width in list view
-                      marginRight: view === "list" ? 1 : 0, // Adjust spacing between buttons in list view
-                    }}
-                    // onClick={() => handleView(ticket.id)} // Handle the view action
-                  >
-                    View
-                  </Button>
-                  <Button
                     variant="contained"
                     color="primary"
                     sx={{
                       width: view === "list" ? "10%" : "40%", // Smaller width in list view
                     }}
-                    // onClick={() => handleUpdate(ticket.id)} // Handle the update action
+                    onClick={() => handleUpdate(ticket)} // Handle the update action
                   >
-                    Update
+                    View
                   </Button>
                 </Box>
               </Box>
             ))
           )}
         </Box>
+
+        <UpdateTicketModal
+          open={openModal}
+          onClose={() => setOpenModal(false)}
+          ticket={selectedTicket}
+        />
 
         <TablePagination
           rowsPerPageOptions={[10, 25, 50]}
