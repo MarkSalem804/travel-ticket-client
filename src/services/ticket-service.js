@@ -19,6 +19,18 @@ function getAllDrivers() {
   return axios.get(`${BASE_URL}/ticket/getAllDrivers`).then((res) => res.data);
 }
 
+function addVehicle(data) {
+  return axios
+    .post(`${BASE_URL}/ticket/addVehicle`, data)
+    .then((res) => res.data);
+}
+
+function addDriver(data) {
+  return axios
+    .post(`${BASE_URL}/ticket/addDriver`, data)
+    .then((res) => res.data);
+}
+
 function submitTicket(formData) {
   return axios.post(`${BASE_URL}/ticket/submitTicket`, formData, {
     headers: {
@@ -33,11 +45,46 @@ function updateRequest(ticketId, updatedData) {
     .then((res) => res.data);
 }
 
+function updateDriver(driverId, updatedData) {
+  return axios
+    .put(`${BASE_URL}/ticket/updateDriver/${driverId}`, updatedData)
+    .then((res) => res.data);
+}
+
+function updateVehicle(vehicleId, updatedData) {
+  return axios
+    .put(`${BASE_URL}/ticket/updateVehicle/${vehicleId}`, updatedData)
+    .then((res) => res.data);
+}
+
+function deleteVehicle(vehicleId) {
+  return axios
+    .delete(`${BASE_URL}/ticket/deleteVehicle/${vehicleId}`)
+    .then((res) => res.data);
+}
+
+function deleteDriver(driverId) {
+  return axios
+    .delete(`${BASE_URL}/ticket/deleteDriver/${driverId}`)
+    .then((res) => res.data);
+}
+
+function viewAttachment(requestId) {
+  return `${BASE_URL}/ticket/viewAttachment/${requestId}`;
+}
+
 export default {
+  addVehicle,
+  addDriver,
   updateRequest,
+  updateDriver,
+  updateVehicle,
+  deleteVehicle,
+  deleteDriver,
   submitTicket,
   getAllOffices,
   getAllRequests,
   getAllVehicles,
   getAllDrivers,
+  viewAttachment,
 };

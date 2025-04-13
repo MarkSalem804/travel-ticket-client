@@ -4,13 +4,19 @@ import { Route, Routes } from "react-router-dom";
 import { useStateContext } from "./contexts/ContextProvider";
 import AdminLayout from "./layouts/AdminLayout";
 import FeedbackLayout from "./layouts/feedbackLayout";
-import { RequestForm, Login, AdminPage } from "./pages";
+import {
+  RequestForm,
+  Login,
+  AdminPage,
+  VehiclePage,
+  DriverPage,
+} from "./pages";
 import RequireAuth from "./contexts/RequireAuth";
 
 function App() {
   const { auth } = useStateContext();
   console.log(auth);
-  const roles = ["admin", "sdo - personnel", "school personnel"];
+  const roles = ["admin", "driver", "requestor"];
 
   return (
     <Box>
@@ -23,6 +29,8 @@ function App() {
         <Route element={<RequireAuth allowedRoles={roles} />}>
           <Route path="/" element={<AdminLayout />}>
             <Route path="/Administration" element={<AdminPage />} />
+            <Route path="/Vehicles" element={<VehiclePage />} />
+            <Route path="/Drivers" element={<DriverPage />} />
           </Route>
         </Route>
       </Routes>

@@ -75,8 +75,8 @@ function AdminLayout() {
           // [theme.breakpoints.up("sm")]: {
           //   ml: open ? 26 : 4,
           // },
-          "@media (max-width: 380px)": {
-            ml: 0,
+          "@media (max-width: 600px)": {
+            ml: open ? 3 : 0,
           },
         }}
       >

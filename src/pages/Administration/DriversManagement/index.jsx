@@ -24,78 +24,72 @@ import {
   GridView as GridViewIcon,
   TableChart as TableChartIcon,
 } from "@mui/icons-material";
-import { useStateContext } from "../../contexts/ContextProvider";
-import AdminTable from "./AdminTable";
-import ticketService from "../../services/ticket-service";
-import UpdateTicketModal from "../../modals/Tickets/UpdateTicketModal";
+import { useStateContext } from "../../../contexts/ContextProvider";
+import AdminTable from "../AdminTable";
+import ticketService from "../../../services/ticket-service";
+import UpdateDriverModal from "../../../modals/Tickets/UpdateDriverModal";
+import DriversTable from "./DriversTable";
+import AddDriverModal from "../../../modals/Tickets/AddDriverModal";
 
-export default function Feedbacks() {
+export default function Drivers() {
   const { auth, updateNewTicketsCount } = useStateContext();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [refresh, setRefresh] = useState(false);
   const [requests, setRequests] = useState([]);
-  const [view, setView] = useState(localStorage.getItem("view") || "table");
+  const [view, setView] = useState("table" || localStorage.getItem("view"));
 
-  const [statusFilter, setStatusFilter] = useState("");
-  const [destinationFilter, setDestinationFilter] = useState("");
+  const [driverNameFilter, setDriverNameFilter] = useState("");
+  const [plateNoFilter, setPlateNoFilter] = useState("");
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [openModal, setOpenModal] = useState(false);
-  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [openUpdateModal, setOpenUpdateModal] = useState(false);
+  const [openAddModal, setOpenAddModal] = useState(false);
+  const [selectedDriver, setSelectedDriver] = useState(null);
 
-  const handleUpdate = (ticket) => {
-    setSelectedTicket(ticket);
-    setOpenModal(true);
+  const handleUpdate = (driver) => {
+    setSelectedDriver(driver);
+    setOpenUpdateModal(true);
+  };
+
+  const handleDriverAdded = (newDriver) => {
+    setData((prev) => [newDriver, ...prev]);
   };
 
   useEffect(() => {
-    const fetchRequests = async () => {
+    const fetchDrivers = async () => {
       setLoading(true);
       try {
-        console.log("Fetching fresh data from the server...");
-        const response = await ticketService.getAllRequests();
-        console.log("New data fetched:", response);
+        const response = await ticketService.getAllDrivers();
 
         setData(response);
       } catch (err) {
         console.error(err);
-        setError("Failed to fetch trip ticket data.");
+        setError("Failed to fetch vehicle data.");
       } finally {
         setLoading(false);
-        setRefresh(false); // Reset refresh state to avoid unnecessary re-fetching
+        setRefresh(false);
       }
     };
 
     if (refresh) {
-      fetchRequests();
+      fetchDrivers();
     } else {
-      fetchRequests();
+      fetchDrivers();
     }
   }, [refresh, updateNewTicketsCount]);
 
-  const handleStatusFilterChange = (e) => setStatusFilter(e.target.value);
-  const handleDestinationFilterChange = (e) =>
-    setDestinationFilter(e.target.value);
+  const handleDriverNameFilterChange = (e) =>
+    setDriverNameFilter(e.target.value);
 
-  const filteredData = data.filter((ticket) => {
-    const matchesStatus = statusFilter ? ticket.status === statusFilter : true;
-
-    const matchesDestination = destinationFilter
-      ? ticket.destination
-          .toLowerCase()
-          .includes(destinationFilter.toLowerCase())
+  const filteredData = data.filter((driver) => {
+    const matchesName = driverNameFilter
+      ? driver.driverName.toLowerCase().includes(driverNameFilter.toLowerCase())
       : true;
-    return matchesStatus && matchesDestination;
+    return matchesName;
   });
-
-  useEffect(() => {
-    if (data.length > 0) {
-      console.log("Trip Ticket Data:", data);
-    }
-  }, [data]);
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -136,7 +130,15 @@ export default function Feedbacks() {
 
   const handleViewChange = (newView) => {
     setView(newView);
-    localStorage.setItem("view", newView); // Save the selected view to localStorage
+    localStorage.setItem("view", newView);
+  };
+
+  const handleDriverUpdated = (updatedDriver) => {
+    const updatedData = data.map((driver) =>
+      driver.id === updatedDriver.id ? updatedDriver : driver
+    );
+    setData(updatedData); // Update the local data with the updated driver
+    setOpenUpdateModal(false); // Close the modal
   };
 
   return (
@@ -154,7 +156,7 @@ export default function Feedbacks() {
             fontWeight: "bold",
             color: "black",
             "@media (max-width: 600px)": {
-              fontSize: "12px", // Smaller font size for mobile
+              fontSize: "12px",
             },
           }}
         >
@@ -231,7 +233,7 @@ export default function Feedbacks() {
             textAlign: "center",
           }}
         >
-          TRIP TICKET AND REQUESTS MANAGEMENT
+          DRIVERS MANAGEMENT
         </Typography>
       </Box>
 
@@ -243,36 +245,10 @@ export default function Feedbacks() {
           justifyContent: "Right",
         }}
       >
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <TextField
-            select
-            value={statusFilter || "All Status"}
-            onChange={handleStatusFilterChange}
-            sx={{
-              width: "200px",
-              height: "35px", // Reduced height
-              fontSize: "14px", // Smaller font size
-              padding: "10px", // Less padding
-              display: "flex",
-              justifyContent: "center",
-            }}
-          >
-            <MenuItem value="">All Status</MenuItem>
-            <MenuItem value="Approved">Approved</MenuItem>
-            <MenuItem value="Pending">Pending</MenuItem>
-          </TextField>
-        </Box>
-
         <TextField
-          label="Search destination"
-          value={destinationFilter}
-          onChange={handleDestinationFilterChange}
+          label="Search Driver"
+          value={driverNameFilter}
+          onChange={handleDriverNameFilterChange}
           sx={{
             width: "300px", // Width can also be adjusted as needed
             fontSize: "14px", // Smaller font size
@@ -288,7 +264,6 @@ export default function Feedbacks() {
         sx={{
           backgroundColor: "rgba(240, 240, 240, 1)",
           my: 5,
-
           "@media (max-width: 600px)": {
             my: 2, // Less margin on mobile
             width: "100%",
@@ -307,7 +282,7 @@ export default function Feedbacks() {
               },
             }}
           >
-            TRIP TICKET LIST
+            Registered Drivers
           </Typography>
         </Divider>
 
@@ -329,11 +304,11 @@ export default function Feedbacks() {
           }}
         >
           {view === "table" ? (
-            <AdminTable data={paginatedData} loadingState={loading} />
+            <DriversTable data={paginatedData} loadingState={loading} />
           ) : (
-            paginatedData.map((ticket) => (
+            paginatedData.map((driver) => (
               <Box
-                key={ticket.id}
+                key={driver.id}
                 sx={{
                   display: "flex",
                   flexDirection: "column",
@@ -369,66 +344,15 @@ export default function Feedbacks() {
                         },
                       }}
                     >
-                      Requestor: {ticket.requestedBy}
+                      Driver Name: {driver.driverName}
                     </Typography>
                     <Typography sx={{ fontSize: "14px" }}>
-                      Office: {ticket.requestorOffice}
+                      Contact Number: {driver.plateNo}
                     </Typography>
                     <Typography sx={{ fontSize: "14px" }}>
-                      Designation: {ticket.designation}
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontSize: "14px",
-                        color:
-                          ticket.status === "Approved"
-                            ? "green" // Green for Approved
-                            : ticket.status === "Rejected"
-                            ? "red" // Red for Rejected
-                            : ticket.status === "Pending"
-                            ? "orange" // Orange for Pending
-                            : "black", // Default color if status is something else
-                      }}
-                    >
-                      Status: {ticket.status}
+                      E-Mail: {driver.email}
                     </Typography>
                   </Box>
-
-                  <Box sx={{ minWidth: "200px" }}>
-                    <Typography
-                      variant="h6"
-                      fontWeight="bold"
-                      sx={{
-                        fontSize: "16px", // Smaller font size for ticket details
-                        "@media (max-width: 600px)": {
-                          fontSize: "14px", // Reduce font size for mobile
-                        },
-                      }}
-                    >
-                      Destination: {ticket.destination}
-                    </Typography>
-                    <Typography sx={{ fontSize: "14px" }}>
-                      Purpose: {ticket.purpose}
-                    </Typography>
-                    <Typography sx={{ fontSize: "14px" }}>
-                      Departure: {formatDate(ticket.departureDate)} -{" "}
-                      {formatTime(ticket.departureTime)}
-                    </Typography>
-                    <Typography sx={{ fontSize: "14px" }}>
-                      Arrival: {formatDate(ticket.arrivalDate)} -{" "}
-                      {formatTime(ticket.arrivalTime)}
-                    </Typography>
-                  </Box>
-                </Box>
-
-                <Box>
-                  <Typography sx={{ fontSize: "14px" }}>
-                    Authorized Passengers:{" "}
-                    <strong>{ticket.authorizedPassengers}</strong>
-                  </Typography>
-                  <Typography sx={{ fontSize: "14px" }}>
-                    Submitted: {formatDate(ticket.created_at)}
-                  </Typography>
                 </Box>
 
                 <Box
@@ -445,7 +369,7 @@ export default function Feedbacks() {
                     sx={{
                       width: view === "list" ? "10%" : "40%", // Smaller width in list view
                     }}
-                    onClick={() => handleUpdate(ticket)} // Handle the update action
+                    onClick={() => handleUpdate(driver)} // Handle the update action
                   >
                     View
                   </Button>
@@ -455,21 +379,53 @@ export default function Feedbacks() {
           )}
         </Box>
 
-        <UpdateTicketModal
-          open={openModal}
-          onClose={() => setOpenModal(false)}
-          ticket={selectedTicket}
+        <UpdateDriverModal
+          open={openUpdateModal}
+          onClose={() => setOpenUpdateModal(false)}
+          driver={selectedDriver}
+          onUpdated={handleDriverUpdated}
         />
 
-        <TablePagination
-          rowsPerPageOptions={[10, 25, 50]}
-          component="div"
-          count={filteredData.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
+        <AddDriverModal
+          open={openAddModal}
+          onClose={() => setOpenAddModal(false)}
+          driver={selectedDriver}
+          onUpdated={handleDriverUpdated}
+          onAdded={handleDriverAdded}
         />
+
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            mt: 2,
+            flexWrap: "wrap", // responsive
+          }}
+        >
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => setOpenAddModal(true)} // Or whatever function opens your Add modal
+            sx={{
+              mb: { xs: 2, sm: 0 },
+              padding: "12px 36px",
+              borderRadius: 0,
+            }}
+          >
+            Add
+          </Button>
+
+          <TablePagination
+            rowsPerPageOptions={[10, 25, 50]}
+            component="div"
+            count={filteredData.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </Box>
       </Box>
     </Box>
   );

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import {
   Modal,
   Box,
@@ -16,6 +17,7 @@ import ticketService from "../../services/ticket-service";
 import SelectOffice from "../../components/Textfields/SelectOffice";
 import SelectVehicle from "../../components/Textfields/SelectVehicles";
 import SelectDriver from "../../components/Textfields/SelectDrivers";
+import ViewAttachmentModal from "./ViewAttachmentModal";
 const modalBaseStyle = {
   position: "absolute",
   top: "50%",
@@ -42,6 +44,8 @@ export default function UpdateTicketModal({
   const [loadingDialogOpen, setLoadingDialogOpen] = useState(false);
   const [successDialogOpen, setSuccessDialogOpen] = useState(false);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [attachmentModalOpen, setAttachmentModalOpen] = useState(false);
+  const [attachmentUrl, setAttachmentUrl] = useState("");
 
   // Initialize the ticket form data
   const [formData, setFormData] = useState({
@@ -192,6 +196,12 @@ export default function UpdateTicketModal({
       minute: "2-digit",
       hour12: true,
     });
+  };
+
+  const handleViewAttachment = (requestId) => {
+    const url = ticketService.viewAttachment(requestId); // this should return the full path
+    setAttachmentUrl(url);
+    setAttachmentModalOpen(true);
   };
 
   return (
@@ -546,6 +556,14 @@ export default function UpdateTicketModal({
                 Cancel
               </Button>
               <Button
+                onClick={() => handleViewAttachment(ticket.id)}
+                variant="contained"
+                fullWidth={isMobile}
+                sx={{ minWidth: !isMobile ? 120 : undefined }}
+              >
+                View Attachment
+              </Button>
+              <Button
                 variant="contained"
                 color="error"
                 onClick={handleReject}
@@ -559,9 +577,12 @@ export default function UpdateTicketModal({
                 color="primary"
                 onClick={handleSubmit}
                 fullWidth={isMobile}
-                sx={{ minWidth: !isMobile ? 120 : undefined }}
+                sx={{
+                  minWidth: !isMobile ? 120 : undefined,
+                  backgroundColor: "green",
+                }}
               >
-                Save
+                Approve
               </Button>
             </Box>
           </Box>
@@ -574,6 +595,12 @@ export default function UpdateTicketModal({
           )}
         </Box>
       </Modal>
+
+      <ViewAttachmentModal
+        open={attachmentModalOpen}
+        onClose={() => setAttachmentModalOpen(false)}
+        attachmentUrl={attachmentUrl}
+      />
       {/* Loading Dialog */}
       <Dialog open={loadingDialogOpen} onClose={() => {}} disableBackdropClick>
         <DialogContent sx={{ textAlign: "center", px: "100px" }}>

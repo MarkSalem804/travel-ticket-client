@@ -1,8 +1,9 @@
+/* eslint-disable no-unused-vars */
 import { Box, IconButton, Tooltip } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import EditableTable from "../../components/Table/EditableTable";
 import dayjs from "dayjs";
-import { Visibility as VisibilityIcon } from "@mui/icons-material";
+import PlaylistAddCheckCircleIcon from "@mui/icons-material/PlaylistAddCheckCircle";
 import UpdateTicketModal from "../../modals/Tickets/UpdateTicketModal";
 
 export default function AdminTable({ data, loadingState }) {
@@ -26,7 +27,7 @@ export default function AdminTable({ data, loadingState }) {
             <Tooltip title={"Update Ticket"}>
               <span>
                 <IconButton sx={{ color: "#1976d2" }}>
-                  <VisibilityIcon />
+                  <PlaylistAddCheckCircleIcon sx={{ fontSize: "2rem" }} />
                 </IconButton>
               </span>
             </Tooltip>
@@ -34,18 +35,17 @@ export default function AdminTable({ data, loadingState }) {
         );
       },
     },
-    { field: "id", headerName: "ID", width: 70 },
     {
-      field: "startTime",
-      headerName: "Start time",
+      field: "departureTime",
+      headerName: "Departure",
       width: 200,
       valueGetter: (params) =>
         // Return the formatted date
         dayjs(params.value).format("YYYY-MM-DD hh:mm A"),
     },
     {
-      field: "created_at",
-      headerName: "Completion Time",
+      field: "arrivalTime",
+      headerName: "Estimated Arrival",
       width: 200,
       valueGetter: (params) =>
         // Return the formatted date
@@ -57,7 +57,7 @@ export default function AdminTable({ data, loadingState }) {
   ];
 
   return (
-    <Box sx={{ width: "100%" }}>
+    <Box sx={{ width: "100%", overflowX: "auto" }}>
       <EditableTable
         data={data}
         columns={columns}

@@ -56,7 +56,7 @@ const closedMixin = (theme) => ({
   "@media (max-width: 600px)": {
     width: `calc(${theme.spacing(8)} + 1px)`,
   },
-  "@media (max-width: 380px)": {
+  "@media (max-width: 432px)": {
     width: 0,
   },
 });
