@@ -2,6 +2,7 @@
 import axios from "axios";
 
 const BASE_URL = "http://localhost:8050";
+// const BASE_URL = "https://tripticket.depedimuscity.com:8050";
 
 function getAllOffices() {
   return axios.get(`${BASE_URL}/ticket/getAllOffices`).then((res) => res.data);
@@ -73,7 +74,49 @@ function viewAttachment(requestId) {
   return `${BASE_URL}/ticket/viewAttachment/${requestId}`;
 }
 
+function travelOut(data) {
+  console.log("🚀 [travelOut] Sending request to backend...");
+  console.log("➡️ [travelOut] Data being sent:", data);
+  console.log("🆔 [travelOut] requestId being sent:", data.id);
+
+  return axios
+    .post(`${BASE_URL}/ticket/travelOut`, data)
+    .then((res) => {
+      console.log("✅ [travelOut] API response:", res);
+      return res.data;
+    })
+    .catch((error) => {
+      console.error("❌ [travelOut] API error:", error);
+      throw error;
+    });
+}
+
+function travelIn(data) {
+  console.log("🚀 [travelIn] Sending request to backend...");
+  console.log("➡️ [travelIn] Data being sent:", data);
+  console.log("🆔 [travelIn] requestId being sent:", data.id);
+
+  return axios
+    .post(`${BASE_URL}/ticket/travelIn`, data)
+    .then((res) => {
+      console.log("✅ [travelIn] API response:", res);
+      return res.data;
+    })
+    .catch((error) => {
+      console.error("❌ [travelIn] API error:", error);
+      throw error;
+    });
+}
+
+function getTodaysRequests() {
+  return axios
+    .get(`${BASE_URL}/ticket/getAllRequestsForToday`)
+    .then((res) => res.data);
+}
+
 export default {
+  travelOut,
+  travelIn,
   addVehicle,
   addDriver,
   updateRequest,
@@ -82,6 +125,7 @@ export default {
   deleteVehicle,
   deleteDriver,
   submitTicket,
+  getTodaysRequests,
   getAllOffices,
   getAllRequests,
   getAllVehicles,

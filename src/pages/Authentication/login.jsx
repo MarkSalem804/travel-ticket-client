@@ -9,6 +9,7 @@ import {
   Paper,
   InputAdornment,
   IconButton,
+  Dialog,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useFormik } from "formik";
@@ -17,7 +18,7 @@ import { string, object } from "yup";
 import userService from "../../services/user-service";
 import LockIcon from "@mui/icons-material/Lock";
 import { AccountCircle, Visibility, VisibilityOff } from "@mui/icons-material";
-import IllustrationImage from "../../assets/deped_logo.png"; // Import the illustration image
+import IllustrationImage from "../../assets/deped_logo.png";
 
 const Login = () => {
   const [loading, setLoading] = useState(false);
@@ -25,6 +26,7 @@ const Login = () => {
   const { setAuth } = useStateContext();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [errorDialogOpen, setErrorDialogOpen] = useState(false);
 
   const formik = useFormik({
     initialValues: { username: "", password: "" },
@@ -54,6 +56,7 @@ const Login = () => {
           message = "Internal Server Error";
         }
         setError(message || err?.message);
+        setErrorDialogOpen(true);
       } finally {
         setLoading(false);
       }
@@ -65,7 +68,7 @@ const Login = () => {
   };
 
   const handleBackToRequestForm = () => {
-    navigate("/"); // Adjust this route based on your app's structure
+    navigate("/");
   };
 
   return (
@@ -87,9 +90,7 @@ const Login = () => {
           boxSizing: "border-box",
         }}
       >
-        {/* Left side: Logo and Title */}
         <Box sx={{ flex: 1, paddingRight: 2, textAlign: "center" }}>
-          {/* Logo */}
           <Box sx={{ mb: 2 }}>
             <img
               src={IllustrationImage}
@@ -205,6 +206,40 @@ const Login = () => {
           )}
         </Box>
       </Paper>
+
+      <Dialog
+        open={errorDialogOpen}
+        onClose={() => setErrorDialogOpen(false)}
+        aria-labelledby="error-dialog-title"
+        aria-describedby="error-dialog-description"
+        fullWidth
+        maxWidth="sm"
+        sx={{
+          "& .MuiDialog-paper": {
+            width: "90%",
+            maxWidth: "300px",
+            mx: "auto",
+          },
+        }}
+      >
+        <Box p={3}>
+          <Typography id="error-dialog-title" variant="h6" gutterBottom>
+            Authentication Error
+          </Typography>
+          <Typography id="error-dialog-description" variant="body1">
+            {error}
+          </Typography>
+          <Box mt={2} display="flex" justifyContent="flex-end">
+            <Button
+              onClick={() => setErrorDialogOpen(false)}
+              color="primary"
+              variant="contained"
+            >
+              OK
+            </Button>
+          </Box>
+        </Box>
+      </Dialog>
     </Container>
   );
 };

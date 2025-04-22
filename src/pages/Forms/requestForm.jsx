@@ -93,7 +93,7 @@ const RequestForm = ({ onSubmitSuccess }) => {
       return;
     }
 
-    const parsedValue = dayjs(value); // ✅ Ensure it's a Day.js object
+    const parsedValue = dayjs(value);
 
     if (field === "departureTime" || field === "arrivalTime") {
       const dateField =
@@ -111,14 +111,14 @@ const RequestForm = ({ onSubmitSuccess }) => {
 
       setFormData((prev) => ({
         ...prev,
-        [field]: mergedDateTime.toDate(), // ✅ Store as Date object
+        [field]: mergedDateTime.toDate(),
       }));
     } else {
       console.log(`Selected ${field} (Local Time):`, parsedValue.format());
 
       setFormData((prev) => ({
         ...prev,
-        [field]: parsedValue.toDate(), // ✅ Store as Date object
+        [field]: parsedValue.toDate(),
       }));
     }
   };
@@ -131,7 +131,6 @@ const RequestForm = ({ onSubmitSuccess }) => {
 
     const data = new FormData();
 
-    // Ensure we're creating Date objects
     const parseToDate = (value) => (value ? new Date(value) : null);
 
     const updatedFormData = {
@@ -153,23 +152,18 @@ const RequestForm = ({ onSubmitSuccess }) => {
     }
 
     try {
-      // Submit the ticket
       await ticketService.submitTicket(data);
 
       if (typeof onSubmitSuccess === "function") {
         onSubmitSuccess();
       }
-
-      // Reset the form state
       setFormData(initialFormState);
       setSelectedFile(null);
       setFileName("");
       setSelectedOffice("");
 
-      // Clear localStorage to force a fresh data fetch on the admin panel
       localStorage.removeItem("tripTicketData"); // Clear just the trip ticket data
 
-      // Optionally force the admin panel to re-fetch new data
       setRefresh(true); // Trigger refresh so that admin panel fetches new data
     } catch (error) {
       console.error("Error submitting ticket:", error);
@@ -394,7 +388,7 @@ const RequestForm = ({ onSubmitSuccess }) => {
                     backgroundColor: "black",
                   }}
                 >
-                  Submit Request
+                  Submit
                 </Button>
               </Grid>
             </Grid>

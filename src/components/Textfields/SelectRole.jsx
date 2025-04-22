@@ -1,18 +1,17 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
 import {
-  Box,
-  CircularProgress,
-  IconButton,
-  Menu,
   MenuItem,
+  IconButton,
+  Box,
   TextField,
+  Menu,
+  CircularProgress,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import ticketService from "../../services/ticket-service";
 
-export default function SelectOffice({
+export default function SelectRole({
   label,
   placeholder,
   name,
@@ -21,43 +20,38 @@ export default function SelectOffice({
   onBlur,
   errorFormik,
   helperText,
+  error,
   disabled,
+  // disable,
   sx,
 }) {
-  const [driver, setDriver] = useState([]);
   const [anchorEl, setAnchorEl] = useState(null);
-  const [selectedDriver, setSelectedDriver] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  // Define handleGetAll function
-  const handleGetAll = () => {
+  const roles = [
+    { id: 1, type: "Admin" },
+    { id: 2, type: "Driver" },
+    { id: 3, type: "Requestor" },
+  ];
+
+  useEffect(() => {
     setLoading(true);
-    setError("");
+    setTimeout(() => {
+      setLoading(false);
+    }, 100);
+  }, [value]);
 
-    ticketService
-      .getAllDrivers()
-      .then((response) => {
-        setDriver(response); // Make sure offices is always an array
-        setSelectedDriver(
-          response.find((office) => office.id === value) || null
-        );
-      })
-      .catch((err) => {
-        setError(err.message);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  };
+  const lowercaseValue = value ? value?.toLowerCase() : "";
+
+  const [selectedRole, setSelectedRole] = useState(
+    roles?.find((role) => role.type.toLowerCase() === lowercaseValue) || null
+  );
 
   useEffect(() => {
-    handleGetAll();
-  }, []);
-
-  useEffect(() => {
-    setSelectedDriver(driver?.find((office) => office.id === value) || null);
-  }, [driver, value]);
+    setSelectedRole(
+      roles?.find((role) => role.type.toLowerCase() === lowercaseValue) || null
+    );
+  }, [value]);
 
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -66,14 +60,14 @@ export default function SelectOffice({
   const handleClose = (newValue) => {
     setAnchorEl(null);
     if (newValue) {
-      onChange?.(name, newValue.id || "");
-      setSelectedDriver(newValue);
+      onChange?.(name, newValue.type.toLowerCase() || "");
+      setSelectedRole(newValue);
     }
   };
 
   const handleClear = () => {
-    onChange?.(name, "");
-    setSelectedDriver(null);
+    onChange?.(name, ""); // Clear the value
+    setSelectedRole(null);
   };
 
   return (
@@ -87,7 +81,7 @@ export default function SelectOffice({
         variant="outlined"
         size="large"
         disabled={error || disabled}
-        value={selectedDriver && value ? selectedDriver.driverName : ""}
+        value={selectedRole && value ? selectedRole.type : ""}
         onClick={handleClick}
         onBlur={onBlur}
         error={errorFormik}
@@ -101,7 +95,7 @@ export default function SelectOffice({
                 <CircularProgress color="inherit" size={20} />
               ) : (
                 <>
-                  {selectedDriver && (
+                  {selectedRole && (
                     <IconButton edge="end" onClick={handleClear}>
                       <CloseIcon />
                     </IconButton>
@@ -122,13 +116,13 @@ export default function SelectOffice({
         open={Boolean(anchorEl)}
         onClose={() => handleClose(null)}
       >
-        {driver.map((office) => (
+        {roles.map((role) => (
           <MenuItem
             sx={{ width: "100%" }}
-            key={office.id}
-            onClick={() => handleClose(office)}
+            key={role.id}
+            onClick={() => handleClose(role)}
           >
-            {office.driverName}
+            {role.type}
           </MenuItem>
         ))}
       </Menu>

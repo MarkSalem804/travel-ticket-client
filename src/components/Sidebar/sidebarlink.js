@@ -21,7 +21,7 @@ const links = [
     links: [
       {
         name: "Users",
-        path: "Administration",
+        path: "Users",
         icon: <PeopleAltIcon />,
       },
     ],

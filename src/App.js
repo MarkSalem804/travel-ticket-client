@@ -10,6 +10,8 @@ import {
   AdminPage,
   VehiclePage,
   DriverPage,
+  UserPage,
+  TodaysTravelsPage,
 } from "./pages";
 import RequireAuth from "./contexts/RequireAuth";
 
@@ -24,6 +26,7 @@ function App() {
         <Route element={<FeedbackLayout />}>
           <Route path="/" element={<RequestForm />} />
           <Route path="/Authenticate" element={<Login />} />
+          <Route path="/TodaysTravels" element={<TodaysTravelsPage />} />
         </Route>
 
         <Route element={<RequireAuth allowedRoles={roles} />}>
@@ -31,6 +34,7 @@ function App() {
             <Route path="/Administration" element={<AdminPage />} />
             <Route path="/Vehicles" element={<VehiclePage />} />
             <Route path="/Drivers" element={<DriverPage />} />
+            <Route path="/Users" element={<UserPage />} />
           </Route>
         </Route>
       </Routes>

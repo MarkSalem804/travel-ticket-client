@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Box, IconButton, Menu, MenuItem } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useStateContext } from "../../contexts/ContextProvider";
-// import ChangePasswordModal from "modals/miscellaneous/ChangePasswordModal";
+import ChangePasswordModal from "../../modals/Users/ChangePasswordModal";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import SnackbarComponent from "../Snackbar";
 
@@ -42,13 +42,11 @@ export default function ProfileMenu() {
 
   return (
     <Box>
-      {/* <ChangePasswordModal
+      <ChangePasswordModal
         open={open}
-        handleClose={handleClose}
-        onSuccess={() => {
-          setOpenSuccess(true);
-        }}
-      /> */}
+        onClose={handleClose}
+        onUpdated={() => setOpenSuccess(true)}
+      />
       <IconButton
         onClick={(evt) => setAnchorEl(evt.currentTarget)}
         sx={{
@@ -73,12 +71,12 @@ export default function ProfileMenu() {
         </MenuItem>
         <MenuItem onClick={() => handleLogout()}>Logout</MenuItem>
       </Menu>
-      <SnackbarComponent
+      {/* <SnackbarComponent
         open={openSuccess}
         onClose={handleCloseSuccess}
         severity="success"
         message="Password Changed Successfully."
-      />
+      /> */}
     </Box>
   );
 }

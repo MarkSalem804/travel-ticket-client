@@ -3,3 +3,5 @@ export { default as Login } from "./Authentication/login";
 export { default as AdminPage } from "../pages/Administration";
 export { default as VehiclePage } from "../pages/Administration/VehicleManagement";
 export { default as DriverPage } from "../pages/Administration/DriversManagement";
+export { default as UserPage } from "../pages/Administration/UserManagement";
+export { default as TodaysTravelsPage } from "../pages/Trackers/travelTracker";

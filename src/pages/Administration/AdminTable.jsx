@@ -10,6 +10,31 @@ export default function AdminTable({ data, loadingState }) {
   const [openModal, setOpenModal] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
 
+  console.log(data);
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const formatTime = (dateString) => {
+    const date = new Date(dateString);
+
+    const localTime = new Date(
+      date.getTime() + date.getTimezoneOffset() * 60000
+    );
+
+    return localTime.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
+
   const columns = [
     {
       field: "actions",
@@ -38,22 +63,23 @@ export default function AdminTable({ data, loadingState }) {
     {
       field: "departureTime",
       headerName: "Departure",
-      width: 200,
+      width: 250,
       valueGetter: (params) =>
-        // Return the formatted date
-        dayjs(params.value).format("YYYY-MM-DD hh:mm A"),
+        `${formatDate(params.value)} — ${formatTime(params.value)}`,
     },
     {
       field: "arrivalTime",
       headerName: "Estimated Arrival",
-      width: 200,
+      width: 250,
       valueGetter: (params) =>
-        // Return the formatted date
-        dayjs(params.value).format("YYYY-MM-DD hh:mm A"),
+        `${formatDate(params.value)} — ${formatTime(params.value)}`,
     },
     { field: "requestedBy", headerName: "Requestor", width: 250 },
     { field: "destination", headerName: "Destination", width: 250 },
     { field: "status", headerName: "Status", width: 250 },
+    { field: "driverName", headerName: "Driver", width: 250 },
+    { field: "plateNumber", headerName: "Plate Number", width: 250 },
+    { field: "vehicleName", headerName: "Vehicle", width: 250 },
   ];
 
   return (
