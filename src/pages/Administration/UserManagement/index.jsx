@@ -125,15 +125,15 @@ export default function Users() {
 
   const handleViewChange = (newView) => {
     setView(newView);
-    localStorage.setItem("view", newView); // Save the selected view to localStorage
+    localStorage.setItem("view", newView);
   };
 
-  const handleVehicleUpdated = (updatedVehicle) => {
-    const updatedData = data.map((vehicle) =>
-      vehicle.id === updatedVehicle.id ? updatedVehicle : vehicle
+  const handleUserUpdated = (updatedUser) => {
+    const updatedData = data.map((user) =>
+      user.id === updatedUser.id ? updatedUser : user
     );
-    setData(updatedData); // Update the local data with the updated driver
-    setOpenUpdateModal(false); // Close the modal
+    setData(updatedData);
+    setOpenUpdateModal(false);
   };
 
   return (

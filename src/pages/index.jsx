@@ -5,3 +5,4 @@ export { default as VehiclePage } from "../pages/Administration/VehicleManagemen
 export { default as DriverPage } from "../pages/Administration/DriversManagement";
 export { default as UserPage } from "../pages/Administration/UserManagement";
 export { default as TodaysTravelsPage } from "../pages/Trackers/travelTracker";
+export { default as UrgentTravels } from "../pages/Trackers/urgentTravels";

@@ -1,5 +1,5 @@
 import React from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   AppBar,
   Toolbar,
@@ -7,30 +7,30 @@ import {
   Container,
   Box,
   Tooltip,
+  useMediaQuery,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import depedLogo from "../assets/deped_logo.png";
 import tripBackground from "../assets/background2.png";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import DepartureBoardIcon from "@mui/icons-material/DepartureBoard";
+import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
 import ListAltIcon from "@mui/icons-material/ListAlt";
-import { useNavigate } from "react-router-dom";
 
 const FormLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const isFullPage = location.pathname === "/TodaysTravels";
+  const isFullPage =
+    location.pathname === "/TodaysTravels" ||
+    location.pathname === "/UrgentTravels";
 
-  const handleRedirectToLogin = () => {
-    navigate("./Authenticate");
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up("xl")); // Detect if xl screen or larger
+
+  const handleRedirect = (path) => {
+    navigate(path);
   };
 
-  const handleRedirectToTravels = () => {
-    navigate("./TodaysTravels");
-  };
-
-  const handleRedirectToForm = () => {
-    navigate("./");
-  };
   return (
     <Box
       sx={{
@@ -67,40 +67,93 @@ const FormLayout = () => {
           >
             TRIP TICKETING SYSTEM
           </Typography>
+
           <Box
             sx={{
               display: "flex",
               alignItems: "center",
-              gap: { xs: 1.5, xl: 4 },
+              gap: { xs: 1.5, xl: 7 },
             }}
           >
-            <Tooltip title="Request Form" onClick={handleRedirectToForm}>
-              <ListAltIcon
-                sx={{
-                  fontSize: { xs: 20, sm: 35 },
-                  color: "white",
-                  cursor: "pointer",
-                }}
-              />
-            </Tooltip>
-            <Tooltip title="Today's Trips" onClick={handleRedirectToTravels}>
-              <DepartureBoardIcon
-                sx={{
-                  fontSize: { xs: 20, sm: 35 },
-                  color: "white",
-                  cursor: "pointer",
-                }}
-              />
-            </Tooltip>
-            <Tooltip title="Login" onClick={handleRedirectToLogin}>
-              <AdminPanelSettingsIcon
-                sx={{
-                  fontSize: { xs: 20, sm: 40 },
-                  color: "white",
-                  cursor: "pointer",
-                }}
-              />
-            </Tooltip>
+            {isDesktop ? (
+              <>
+                <Typography
+                  sx={{ color: "white", cursor: "pointer", fontSize: "1rem" }}
+                  onClick={() => handleRedirect("./UrgentTravels")}
+                >
+                  Urgent Trips
+                </Typography>
+                <Typography
+                  sx={{ color: "white", cursor: "pointer", fontSize: "1rem" }}
+                  onClick={() => handleRedirect("./")}
+                >
+                  Request Form
+                </Typography>
+                <Typography
+                  sx={{ color: "white", cursor: "pointer", fontSize: "1rem" }}
+                  onClick={() => handleRedirect("./TodaysTravels")}
+                >
+                  Today's Trips
+                </Typography>
+                <Typography
+                  sx={{ color: "white", cursor: "pointer", fontSize: "1rem" }}
+                  onClick={() => handleRedirect("./Authenticate")}
+                >
+                  Login
+                </Typography>
+              </>
+            ) : (
+              <>
+                <Tooltip
+                  title="Urgent Trips"
+                  onClick={() => handleRedirect("./UrgentTravels")}
+                >
+                  <RocketLaunchIcon
+                    sx={{
+                      fontSize: { xs: 20, sm: 35 },
+                      color: "white",
+                      cursor: "pointer",
+                    }}
+                  />
+                </Tooltip>
+                <Tooltip
+                  title="Request Form"
+                  onClick={() => handleRedirect("./")}
+                >
+                  <ListAltIcon
+                    sx={{
+                      fontSize: { xs: 20, sm: 35 },
+                      color: "white",
+                      cursor: "pointer",
+                    }}
+                  />
+                </Tooltip>
+                <Tooltip
+                  title="Today's Trips"
+                  onClick={() => handleRedirect("./TodaysTravels")}
+                >
+                  <DepartureBoardIcon
+                    sx={{
+                      fontSize: { xs: 20, sm: 35 },
+                      color: "white",
+                      cursor: "pointer",
+                    }}
+                  />
+                </Tooltip>
+                <Tooltip
+                  title="Login"
+                  onClick={() => handleRedirect("./Authenticate")}
+                >
+                  <AdminPanelSettingsIcon
+                    sx={{
+                      fontSize: { xs: 20, sm: 40 },
+                      color: "white",
+                      cursor: "pointer",
+                    }}
+                  />
+                </Tooltip>
+              </>
+            )}
           </Box>
         </Toolbar>
       </AppBar>
@@ -108,12 +161,11 @@ const FormLayout = () => {
       {/* Content */}
       {isFullPage ? (
         <Box sx={{ flexGrow: 1 }}>
-          {/* Full-width layout */}
           <Outlet />
         </Box>
       ) : (
         <Container
-          maxWidth="lg"
+          maxWidth="xxl"
           sx={{
             flexGrow: 1,
             display: "flex",

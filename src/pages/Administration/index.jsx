@@ -55,9 +55,7 @@ export default function Feedbacks() {
     const fetchRequests = async () => {
       setLoading(true);
       try {
-        console.log("Fetching fresh data from the server...");
         const response = await ticketService.getAllRequests();
-        console.log("New data fetched:", response);
 
         setData(response);
       } catch (err) {
@@ -65,7 +63,7 @@ export default function Feedbacks() {
         setError("Failed to fetch trip ticket data.");
       } finally {
         setLoading(false);
-        setRefresh(false); // Reset refresh state to avoid unnecessary re-fetching
+        setRefresh(false);
       }
     };
 

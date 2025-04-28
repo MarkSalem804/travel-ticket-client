@@ -56,6 +56,7 @@ export default function VehiclesTable({ data, loadingState }) {
     },
     { field: "vehicleName", headerName: "Vehicle Name", width: 250 },
     { field: "plateNo", headerName: "Plate Number", width: 250 },
+    { field: "rfid", headerName: "RFID", width: 250 },
   ];
 
   return (

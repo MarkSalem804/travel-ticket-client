@@ -211,14 +211,13 @@ export default function UpdateTicketModal({
           sx={{
             ...modalBaseStyle,
             width: {
-              xs: "90%", // Mobile screens
-              sm: 600, // Increase for small screens/tablets
-              md: "70vw", // Increase for desktop
+              xs: "90%",
+              sm: 600,
+              md: "70vw",
             },
-            maxWidth: "70vw", // Limit the maximum width on larger screens
+            maxWidth: "70vw",
           }}
         >
-          {/* Title Header */}
           <Box
             sx={{
               bgcolor: "primary.main",

@@ -5,6 +5,9 @@ import EditableTable from "../../components/Table/EditableTable";
 import dayjs from "dayjs";
 import PlaylistAddCheckCircleIcon from "@mui/icons-material/PlaylistAddCheckCircle";
 import UpdateTicketModal from "../../modals/Tickets/UpdateTicketModal";
+import utc from "dayjs/plugin/utc";
+
+dayjs.extend(utc);
 
 export default function AdminTable({ data, loadingState }) {
   const [openModal, setOpenModal] = useState(false);
@@ -13,26 +16,11 @@ export default function AdminTable({ data, loadingState }) {
   console.log(data);
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    return dayjs.utc(dateString).format("MMM D, YYYY");
   };
 
   const formatTime = (dateString) => {
-    const date = new Date(dateString);
-
-    const localTime = new Date(
-      date.getTime() + date.getTimezoneOffset() * 60000
-    );
-
-    return localTime.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
+    return dayjs.utc(dateString).format("h:mm A");
   };
 
   const columns = [
@@ -80,6 +68,7 @@ export default function AdminTable({ data, loadingState }) {
     { field: "driverName", headerName: "Driver", width: 250 },
     { field: "plateNumber", headerName: "Plate Number", width: 250 },
     { field: "vehicleName", headerName: "Vehicle", width: 250 },
+    { field: "rfid", headerName: "RFID", width: 250 },
   ];
 
   return (

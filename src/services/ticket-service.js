@@ -46,6 +46,12 @@ function updateRequest(ticketId, updatedData) {
     .then((res) => res.data);
 }
 
+function getRequestByRFIDandId(rfid, requestId) {
+  return axios
+    .post(`${BASE_URL}/ticket/getRequestByRFIDAndId`, { rfid, requestId })
+    .then((res) => res.data);
+}
+
 function updateDriver(driverId, updatedData) {
   return axios
     .put(`${BASE_URL}/ticket/updateDriver/${driverId}`, updatedData)
@@ -92,10 +98,6 @@ function travelOut(data) {
 }
 
 function travelIn(data) {
-  console.log("🚀 [travelIn] Sending request to backend...");
-  console.log("➡️ [travelIn] Data being sent:", data);
-  console.log("🆔 [travelIn] requestId being sent:", data.id);
-
   return axios
     .post(`${BASE_URL}/ticket/travelIn`, data)
     .then((res) => {
@@ -114,7 +116,31 @@ function getTodaysRequests() {
     .then((res) => res.data);
 }
 
+function getAllUrgentTrips() {
+  return axios
+    .get(`${BASE_URL}/ticket/getAllUrgentTrips`)
+    .then((res) => res.data);
+}
+
+function urgentTap(rfid) {
+  console.log("🚨 [urgentTap] Tapping RFID:", rfid);
+
+  return axios
+    .post(`${BASE_URL}/ticket/urgentTap`, { rfid })
+    .then((res) => {
+      console.log("✅ [urgentTap] API response:", res);
+      return res.data;
+    })
+    .catch((error) => {
+      console.error("❌ [urgentTap] API error:", error);
+      throw error;
+    });
+}
+
 export default {
+  getAllUrgentTrips,
+  urgentTap,
+  getRequestByRFIDandId,
   travelOut,
   travelIn,
   addVehicle,

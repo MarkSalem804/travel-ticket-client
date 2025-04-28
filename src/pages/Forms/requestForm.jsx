@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Container,
   Paper,
@@ -32,6 +32,7 @@ const RequestForm = ({ onSubmitSuccess }) => {
   const [selectedOffice, setSelectedOffice] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
   const [refresh, setRefresh] = useState(false);
+  const fileInputRef = useRef();
 
   const handleGetAll = () => {
     setLoading(true);
@@ -105,7 +106,8 @@ const RequestForm = ({ onSubmitSuccess }) => {
       const mergedDateTime = selectedDate
         .hour(parsedValue.hour())
         .minute(parsedValue.minute())
-        .second(0);
+        .second(0)
+        .millisecond(0);
 
       console.log(`Selected ${field} (Local Time):`, mergedDateTime.format());
 
@@ -114,11 +116,14 @@ const RequestForm = ({ onSubmitSuccess }) => {
         [field]: mergedDateTime.toDate(),
       }));
     } else {
-      console.log(`Selected ${field} (Local Time):`, parsedValue.format());
+      // Force it to be local and strip the time
+      const normalizedDate = parsedValue.startOf("day");
+
+      console.log(`Selected ${field} (Normalized):`, normalizedDate.format());
 
       setFormData((prev) => ({
         ...prev,
-        [field]: parsedValue.toDate(),
+        [field]: normalizedDate.toDate(),
       }));
     }
   };
@@ -161,9 +166,7 @@ const RequestForm = ({ onSubmitSuccess }) => {
       setSelectedFile(null);
       setFileName("");
       setSelectedOffice("");
-
-      localStorage.removeItem("tripTicketData"); // Clear just the trip ticket data
-
+      fileInputRef.current.value = "";
       setRefresh(true); // Trigger refresh so that admin panel fetches new data
     } catch (error) {
       console.error("Error submitting ticket:", error);
@@ -354,7 +357,12 @@ const RequestForm = ({ onSubmitSuccess }) => {
                   size="large"
                 >
                   Upload File
-                  <input type="file" hidden onChange={handleFileChange} />
+                  <input
+                    type="file"
+                    hidden
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                  />
                 </Button>
               </Grid>
               <Grid item xs={12} sm={6}>
