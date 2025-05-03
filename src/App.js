@@ -13,6 +13,7 @@ import {
   UserPage,
   TodaysTravelsPage,
   UrgentTravels,
+  ApprovedTravels,
 } from "./pages";
 import RequireAuth from "./contexts/RequireAuth";
 
@@ -34,6 +35,7 @@ function App() {
         <Route element={<RequireAuth allowedRoles={roles} />}>
           <Route path="/" element={<AdminLayout />}>
             <Route path="/Administration" element={<AdminPage />} />
+            <Route path="/Approved" element={<ApprovedTravels />} />
             <Route path="/Vehicles" element={<VehiclePage />} />
             <Route path="/Drivers" element={<DriverPage />} />
             <Route path="/Users" element={<UserPage />} />

@@ -24,12 +24,12 @@ import {
   GridView as GridViewIcon,
   TableChart as TableChartIcon,
 } from "@mui/icons-material";
-import { useStateContext } from "../../contexts/ContextProvider";
-import AdminTable from "./AdminTable";
-import ticketService from "../../services/ticket-service";
-import UpdateTicketModal from "../../modals/Tickets/UpdateTicketModal";
+import { useStateContext } from "../../../contexts/ContextProvider";
+import AdminTable from "./ApprovedTable";
+import ticketService from "../../../services/ticket-service";
+import UpdateTicketModal from "../../../modals/Tickets/UpdateTicketModal";
 
-export default function Feedbacks() {
+export default function ApprovedTravels() {
   const { auth, updateNewTicketsCount } = useStateContext();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -58,7 +58,7 @@ export default function Feedbacks() {
         const response = await ticketService.getAllRequests();
 
         const filteredResponse = response.filter(
-          (ticket) => ticket.status === "Pending"
+          (ticket) => ticket.status === "Approved"
         );
 
         setData(filteredResponse);

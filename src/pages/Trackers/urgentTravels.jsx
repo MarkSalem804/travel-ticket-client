@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import {
+  useTheme,
+  useMediaQuery,
   Container,
   Paper,
   Typography,
@@ -19,6 +21,11 @@ import {
   Snackbar,
   Alert,
   TextField,
+  Grid,
+  Card,
+  CardContent,
+  IconButton,
+  Divider,
 } from "@mui/material";
 import ticketService from "../../services/ticket-service"; // Make sure to import your axios function
 
@@ -29,6 +36,8 @@ const UrgentTravels = () => {
   const [rfidInput, setRfidInput] = useState("");
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -42,7 +51,7 @@ const UrgentTravels = () => {
       console.log("✅ [fetchUrgentTrips] Data loaded:", data);
 
       const filteredData = data.filter(
-        (trip) => trip.driverName !== "Wilfredo P. Estopace"
+        (trip) => trip.driverName === "Wilfredo P. Estopace"
       );
 
       setTravels(filteredData); // 👈 update the table data
@@ -138,7 +147,7 @@ const UrgentTravels = () => {
             variant="h5"
             sx={{ fontWeight: "bold", fontFamily: "Poppins" }}
           >
-            Urgent Travels
+            URGENT TRAVELS
           </Typography>
           <Button
             variant="contained"
@@ -162,17 +171,89 @@ const UrgentTravels = () => {
         {loading ? (
           <CircularProgress sx={{ display: "block", mx: "auto" }} />
         ) : travels.length === 0 ? (
-          <Typography align="center">No urgent travels available.</Typography>
+          <Typography align="center">No travels for today.</Typography>
+        ) : isMobile ? (
+          <Grid container spacing={2}>
+            {travels.map((travel) => (
+              <Grid item xs={12} key={travel.id}>
+                <Card elevation={3} sx={{ borderRadius: 3, p: 2 }}>
+                  <CardContent>
+                    <Box display="flex" justifyContent="space-between" mb={1}>
+                      <Typography variant="h6">{travel.destination}</Typography>
+                    </Box>
+                    <Divider sx={{ mb: 1 }} />
+                    <Typography variant="body2">
+                      <strong>DRIVER</strong> {travel.driverName}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>VEHICLE</strong> {travel.vehicleName}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>PLATE</strong> {travel.plateNo}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>DEPARTURE</strong>{" "}
+                      {travel.departure ? formatTime(travel.departure) : "—"}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>ARRIVAL</strong>{" "}
+                      {travel.arrival ? formatTime(travel.arrival) : "—"}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
         ) : (
-          <Box sx={{ maxHeight: 500, overflow: "auto" }}>
+          <Box sx={{ maxHeight: 500, overflowY: "auto" }}>
             <Table stickyHeader>
               <TableHead>
                 <TableRow>
-                  <TableCell>Driver Name</TableCell>
-                  <TableCell>Vehicle Name</TableCell>
-                  <TableCell>Plate Number</TableCell>
-                  <TableCell>Departure</TableCell>
-                  <TableCell>Arrival</TableCell>
+                  <TableCell
+                    sx={{
+                      backgroundColor: "#1976d2",
+                      color: "#fff",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    DRIVER
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      backgroundColor: "#1976d2",
+                      color: "#fff",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    VEHICLE
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      backgroundColor: "#1976d2",
+                      color: "#fff",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    PLATE
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      backgroundColor: "#1976d2",
+                      color: "#fff",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    DEPARTURE
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      backgroundColor: "#1976d2",
+                      color: "#fff",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    ARRIVAL
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>

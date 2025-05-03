@@ -81,25 +81,25 @@ const FormLayout = () => {
                   sx={{ color: "white", cursor: "pointer", fontSize: "1rem" }}
                   onClick={() => handleRedirect("./UrgentTravels")}
                 >
-                  Urgent Trips
+                  URGENT TRIPS
                 </Typography>
                 <Typography
                   sx={{ color: "white", cursor: "pointer", fontSize: "1rem" }}
                   onClick={() => handleRedirect("./")}
                 >
-                  Request Form
+                  REQUEST FORM
                 </Typography>
                 <Typography
                   sx={{ color: "white", cursor: "pointer", fontSize: "1rem" }}
                   onClick={() => handleRedirect("./TodaysTravels")}
                 >
-                  Today's Trips
+                  TODAY'S TRIPS
                 </Typography>
                 <Typography
                   sx={{ color: "white", cursor: "pointer", fontSize: "1rem" }}
                   onClick={() => handleRedirect("./Authenticate")}
                 >
-                  Login
+                  LOGIN
                 </Typography>
               </>
             ) : (

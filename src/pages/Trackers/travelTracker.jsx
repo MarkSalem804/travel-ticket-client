@@ -2,6 +2,14 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState, useRef } from "react";
 import {
+  useTheme,
+  useMediaQuery,
+  Card,
+  CardContent,
+  Grid,
+  Divider,
+} from "@mui/material";
+import {
   Container,
   Paper,
   Typography,
@@ -18,6 +26,7 @@ import {
   DialogContentText,
   DialogActions,
   Button,
+  Box,
 } from "@mui/material";
 import AdfScannerSharpIcon from "@mui/icons-material/AdfScannerSharp";
 import ticketService from "../../services/ticket-service";
@@ -35,6 +44,8 @@ const TodaysTravelPage = () => {
   const [rfidInput, setRfidInput] = useState("");
   const [viewOpen, setViewOpen] = useState(false);
   const [viewData, setViewData] = useState(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const inputRef = useRef();
   const socketRef = useRef(null);
 
@@ -67,12 +78,17 @@ const TodaysTravelPage = () => {
     });
 
     socketRef.current.on("connect", () => {
-      console.log("Connected to socket server ✅");
+      // console.log("Connected to socket server ✅");
     });
 
     socketRef.current.on("travel-updated", (data) => {
-      console.log("Received travel-updated event:", data);
+      // console.log("Received travel-updated event:", data);
       fetchTravels(); // re-fetch travels when an update happens
+    });
+
+    socketRef.current.on("ticket-updated", (data) => {
+      console.log("Received ticket-updated event:", data);
+      fetchTravels();
     });
 
     socketRef.current.on("disconnect", () => {
@@ -236,7 +252,7 @@ const TodaysTravelPage = () => {
           align="center"
           sx={{ mb: 3, fontWeight: "bold", fontFamily: "Poppins" }}
         >
-          Today's Travels
+          TODAY'S TRAVELS
         </Typography>
 
         {/* Invisible input for RFID */}
@@ -252,52 +268,172 @@ const TodaysTravelPage = () => {
           <CircularProgress sx={{ display: "block", mx: "auto" }} />
         ) : travels.length === 0 ? (
           <Typography align="center">No travels for today.</Typography>
+        ) : isMobile ? (
+          <Grid container spacing={2}>
+            {travels.map((travel) => (
+              <Grid item xs={12} key={travel.id}>
+                <Card elevation={3} sx={{ borderRadius: 3, p: 2 }}>
+                  <CardContent>
+                    <Box display="flex" justifyContent="space-between" mb={1}>
+                      <Typography variant="h6">{travel.destination}</Typography>
+                      <Box>
+                        <IconButton onClick={() => handleScan(travel)}>
+                          <AdfScannerSharpIcon />
+                        </IconButton>
+                        <IconButton onClick={() => handleView(travel)}>
+                          <NewspaperIcon />
+                        </IconButton>
+                      </Box>
+                    </Box>
+                    <Divider sx={{ mb: 1 }} />
+                    <Typography variant="body2">
+                      <strong>Requestor:</strong> {travel.authorizedPassengers}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Driver:</strong> {travel.driverName}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Vehicle:</strong> {travel.vehicleName}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Out:</strong>{" "}
+                      {travel.travelOut ? formatTime(travel.travelOut) : "—"}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>In:</strong>{" "}
+                      {travel.travelIn ? formatTime(travel.travelIn) : "—"}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>Status:</strong>{" "}
+                      {travel.travelStatus || "Pending"}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
         ) : (
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Actions</TableCell>
-                <TableCell>Requestor</TableCell>
-                <TableCell>Destination</TableCell>
-                <TableCell>Driver</TableCell>
-                <TableCell>Vehicles</TableCell>
-                <TableCell>Out</TableCell>
-                <TableCell>In</TableCell>
-                <TableCell>Status</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {travels.map((travel) => (
-                <TableRow key={travel.id}>
-                  <TableCell>
-                    <IconButton
-                      color="primary"
-                      onClick={() => handleScan(travel)}
-                    >
-                      <AdfScannerSharpIcon />
-                    </IconButton>
-                    <IconButton
-                      color="secondary"
-                      onClick={() => handleView(travel)}
-                    >
-                      <NewspaperIcon />
-                    </IconButton>
+          <Box sx={{ maxHeight: 500, overflowY: "auto" }}>
+            <Table stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableCell
+                    sx={{
+                      backgroundColor: "#1976d2",
+                      color: "#fff",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    Actions
                   </TableCell>
-                  <TableCell>{travel.requestedBy}</TableCell>
-                  <TableCell>{travel.destination}</TableCell>
-                  <TableCell>{travel.driverName}</TableCell>
-                  <TableCell>{travel.vehicleName}</TableCell>
-                  <TableCell>
-                    {travel.travelOut ? formatTime(travel.travelOut) : "—"}
+                  <TableCell
+                    sx={{
+                      backgroundColor: "#1976d2",
+                      color: "#fff",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    PASSENGERS
                   </TableCell>
-                  <TableCell>
-                    {travel.travelIn ? formatTime(travel.travelIn) : "—"}
+                  <TableCell
+                    sx={{
+                      backgroundColor: "#1976d2",
+                      color: "#fff",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    DESTINATION
                   </TableCell>
-                  <TableCell>{travel.travelStatus || "Pending"}</TableCell>
+                  <TableCell
+                    sx={{
+                      backgroundColor: "#1976d2",
+                      color: "#fff",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    DRIVER
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      backgroundColor: "#1976d2",
+                      color: "#fff",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    VEHICLES
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      backgroundColor: "#1976d2",
+                      color: "#fff",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    DEPARTURE
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      backgroundColor: "#1976d2",
+                      color: "#fff",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    ARRIVAL
+                  </TableCell>
+                  <TableCell
+                    sx={{
+                      backgroundColor: "#1976d2",
+                      color: "#fff",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    STATUS
+                  </TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHead>
+              <TableBody>
+                {travels.map((travel) => (
+                  <TableRow key={travel.id}>
+                    <TableCell>
+                      <IconButton
+                        color="primary"
+                        onClick={() => handleScan(travel)}
+                      >
+                        <AdfScannerSharpIcon />
+                      </IconButton>
+                      <IconButton
+                        color="secondary"
+                        onClick={() => handleView(travel)}
+                      >
+                        <NewspaperIcon />
+                      </IconButton>
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        width: "120px",
+                        maxWidth: "120px",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {travel.authorizedPassengers}
+                    </TableCell>
+                    <TableCell>{travel.destination}</TableCell>
+                    <TableCell>{travel.driverName}</TableCell>
+                    <TableCell>{travel.vehicleName}</TableCell>
+                    <TableCell>
+                      {travel.travelOut ? formatTime(travel.travelOut) : "—"}
+                    </TableCell>
+                    <TableCell>
+                      {travel.travelIn ? formatTime(travel.travelIn) : "—"}
+                    </TableCell>
+                    <TableCell>{travel.travelStatus || "Pending"}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Box>
         )}
       </Paper>
 

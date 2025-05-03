@@ -2,6 +2,7 @@ import DataIcon from "@mui/icons-material/Description";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import CameraFrontIcon from "@mui/icons-material/CameraFront";
+import MarkEmailReadIcon from "@mui/icons-material/MarkEmailRead";
 
 const links = [
   {
@@ -12,6 +13,17 @@ const links = [
         name: "Tickets",
         path: "Administration",
         icon: <DataIcon />,
+      },
+    ],
+  },
+  {
+    title: "Approved Tickets",
+    role: "admin",
+    links: [
+      {
+        name: "Approved Tickets",
+        path: "Approved",
+        icon: <MarkEmailReadIcon />,
       },
     ],
   },
