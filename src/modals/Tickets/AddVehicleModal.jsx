@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import ticketService from "../../services/ticket-service";
+import TypeSelector from "../../components/Textfields/SelectVehicleType";
 const modalBaseStyle = {
   position: "absolute",
   top: "50%",
@@ -46,6 +47,9 @@ export default function AddVehicleModal({
   const [formData, setFormData] = useState({
     vehicleName: "",
     plateNo: "",
+    owner: "",
+    type: "",
+    rfid: "",
   });
 
   const handleInputChange = (e) => {
@@ -204,6 +208,67 @@ export default function AddVehicleModal({
                     InputProps={{
                       style: { minWidth: 250 }, // Set a minimum width to accommodate longer text
                     }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        "& fieldset": {
+                          borderColor: "gray",
+                        },
+                      },
+                    }}
+                    fullWidth
+                    label="RFID"
+                    name="rfid"
+                    value={formData?.rfid}
+                    onChange={handleInputChange}
+                    InputProps={{
+                      style: { minWidth: 250 },
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        "& fieldset": {
+                          borderColor: "gray",
+                        },
+                      },
+                    }}
+                    fullWidth
+                    label="Owner"
+                    name="owner"
+                    value={formData.owner}
+                    onChange={handleInputChange}
+                    InputProps={{
+                      style: { minWidth: 250 }, // Set a minimum width to accommodate longer text
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TypeSelector
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        "& fieldset": {
+                          borderColor: "gray",
+                        },
+                      },
+                    }}
+                    fullWidth
+                    label="Type"
+                    placeholder="Choose Vehicle Type"
+                    name="type"
+                    value={formData.type}
+                    onChange={(name, value) =>
+                      setFormData((prev) => ({ ...prev, [name]: value }))
+                    }
+                    errorFormik={!!error && !formData.type}
+                    helperText={
+                      !formData.role && error ? "Designation is required" : ""
+                    }
                   />
                 </Grid>
 

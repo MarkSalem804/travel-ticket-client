@@ -3,6 +3,7 @@ import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import CameraFrontIcon from "@mui/icons-material/CameraFront";
 import MarkEmailReadIcon from "@mui/icons-material/MarkEmailRead";
+import PendingActionsIcon from "@mui/icons-material/PendingActions";
 
 const links = [
   {
@@ -10,9 +11,9 @@ const links = [
     role: "admin",
     links: [
       {
-        name: "Tickets",
+        name: "Pending Tickets",
         path: "Administration",
-        icon: <DataIcon />,
+        icon: <PendingActionsIcon />,
       },
     ],
   },

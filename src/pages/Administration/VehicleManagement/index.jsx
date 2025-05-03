@@ -243,7 +243,7 @@ export default function Vehicles() {
         }}
       >
         <TextField
-          label="Search destination"
+          label="Search Vehicle"
           value={vehicleNameFilter}
           onChange={handleVehicleNameFilterChange}
           sx={{

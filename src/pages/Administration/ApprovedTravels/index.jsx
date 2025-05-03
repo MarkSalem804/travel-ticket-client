@@ -28,6 +28,9 @@ import { useStateContext } from "../../../contexts/ContextProvider";
 import AdminTable from "./ApprovedTable";
 import ticketService from "../../../services/ticket-service";
 import UpdateTicketModal from "../../../modals/Tickets/UpdateTicketModal";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 export default function ApprovedTravels() {
   const { auth, updateNewTicketsCount } = useStateContext();
@@ -46,6 +49,9 @@ export default function ApprovedTravels() {
   const [openModal, setOpenModal] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
 
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+
   const handleUpdate = (ticket) => {
     setSelectedTicket(ticket);
     setOpenModal(true);
@@ -55,7 +61,7 @@ export default function ApprovedTravels() {
     const fetchRequests = async () => {
       setLoading(true);
       try {
-        const response = await ticketService.getAllRequests();
+        const response = await ticketService.getAllRequests(startDate, endDate);
 
         const filteredResponse = response.filter(
           (ticket) => ticket.status === "Approved"
@@ -76,7 +82,7 @@ export default function ApprovedTravels() {
     } else {
       fetchRequests();
     }
-  }, [refresh, updateNewTicketsCount]);
+  }, [refresh, updateNewTicketsCount, startDate, endDate]);
 
   const handleStatusFilterChange = (e) => setStatusFilter(e.target.value);
   const handleDestinationFilterChange = (e) =>
@@ -142,337 +148,352 @@ export default function ApprovedTravels() {
   };
 
   return (
-    <Box
-      sx={{
-        p: "20px",
-        backgroundColor: "white",
-      }}
-    >
-      <Box>
-        <Typography
-          sx={{
-            textAlign: "left",
-            fontSize: "20px", // Default font size
-            fontWeight: "bold",
-            color: "black",
-            "@media (max-width: 600px)": {
-              fontSize: "12px", // Smaller font size for mobile
-            },
-          }}
-        >
-          {auth?.role === "admin"
-            ? "Welcome to the SDOIC - Trip Ticket Management System!"
-            : "Welcome to the SDOIC - Trip Ticket Management System!"}
-        </Typography>
-        <Typography
-          sx={{
-            textAlign: "left",
-            fontSize: "15px", // Default font size
-            color: "black",
-            mt: 2,
-            mb: 2,
-            "@media (max-width: 600px)": {
-              fontSize: "12px", // Smaller font size for mobile
-            },
-          }}
-        >
-          {auth?.role === "admin"
-            ? `${auth?.username} - Administrator`
-            : `${auth?.officeName} - ${auth.role}`}
-        </Typography>
-      </Box>
-
-      <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
-        <IconButton
-          onClick={() => handleViewChange("list")}
-          sx={{
-            marginRight: 1,
-            color: view === "list" ? "blue" : "inherit",
-            "@media (max-width: 432px)": { fontSize: "1rem" },
-          }}
-        >
-          <ListIcon />
-        </IconButton>
-        <IconButton
-          onClick={() => handleViewChange("card")}
-          sx={{
-            color: view === "card" ? "blue" : "inherit",
-            "@media (max-width: 432px)": { display: "none" },
-          }}
-        >
-          <GridViewIcon />
-        </IconButton>
-        <IconButton
-          onClick={() => handleViewChange("table")}
-          sx={{
-            color: view === "table" ? "blue" : "inherit",
-            "@media (max-width: 432px)": { display: "none" },
-          }}
-        >
-          <TableChartIcon />
-        </IconButton>
-      </Box>
-
-      <Box
-        boxShadow="3px 2px 15px 3px rgba(100, 100, 100, 0.8)"
-        p="1rem"
-        sx={{
-          backgroundColor: "primary.main",
-          color: "white",
-        }}
-      >
-        <Typography
-          sx={{
-            textTransform: "uppercase",
-            fontSize: {
-              xs: "12px",
-              sm: "18px",
-              md: "25px",
-            },
-            fontWeight: "bold",
-            textAlign: "center",
-          }}
-        >
-          TRIP TICKET AND REQUESTS MANAGEMENT
-        </Typography>
-      </Box>
-
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
       <Box
         sx={{
-          display: "flex",
-          my: 5,
-          alignItems: "center",
-          justifyContent: "Right",
+          p: "20px",
+          backgroundColor: "white",
         }}
       >
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <TextField
-            select
-            value={statusFilter || "All Status"}
-            onChange={handleStatusFilterChange}
-            sx={{
-              width: "200px",
-              height: "35px", // Reduced height
-              fontSize: "14px", // Smaller font size
-              padding: "10px", // Less padding
-              display: "flex",
-              justifyContent: "center",
-            }}
-          >
-            <MenuItem value="">All Status</MenuItem>
-            <MenuItem value="Approved">Approved</MenuItem>
-            <MenuItem value="Pending">Pending</MenuItem>
-          </TextField>
-        </Box>
-
-        <TextField
-          label="Search destination"
-          value={destinationFilter}
-          onChange={handleDestinationFilterChange}
-          sx={{
-            width: "300px", // Width can also be adjusted as needed
-            fontSize: "14px", // Smaller font size
-            display: "flex",
-            justifyContent: "center",
-          }}
-        />
-      </Box>
-
-      <Box
-        boxShadow="3px 2px 15px 3px rgba(100, 100, 100, 0.8)"
-        p="1rem"
-        sx={{
-          backgroundColor: "rgba(240, 240, 240, 1)",
-          my: 5,
-
-          "@media (max-width: 600px)": {
-            my: 2, // Less margin on mobile
-            width: "100%",
-          },
-        }}
-      >
-        <Divider>
+        <Box>
           <Typography
             sx={{
-              textTransform: "uppercase",
-              fontSize: "25px", // Default font size
+              textAlign: "left",
+              fontSize: "20px", // Default font size
               fontWeight: "bold",
-              mb: 2,
+              color: "black",
               "@media (max-width: 600px)": {
-                fontSize: "20px", // Smaller font size for mobile
+                fontSize: "12px", // Smaller font size for mobile
               },
             }}
           >
-            TRIP TICKET LIST
+            {auth?.role === "admin"
+              ? "Welcome to the SDOIC - Trip Ticket Management System!"
+              : "Welcome to the SDOIC - Trip Ticket Management System!"}
           </Typography>
-        </Divider>
+          <Typography
+            sx={{
+              textAlign: "left",
+              fontSize: "15px", // Default font size
+              color: "black",
+              mt: 2,
+              mb: 2,
+              "@media (max-width: 600px)": {
+                fontSize: "12px", // Smaller font size for mobile
+              },
+            }}
+          >
+            {auth?.role === "admin"
+              ? `${auth?.username} - Administrator`
+              : `${auth?.officeName} - ${auth.role}`}
+          </Typography>
+        </Box>
 
-        {/* Trip Ticket Card Style */}
+        <Box sx={{ display: "flex", justifyContent: "flex-end", mb: 2 }}>
+          <IconButton
+            onClick={() => handleViewChange("list")}
+            sx={{
+              marginRight: 1,
+              color: view === "list" ? "blue" : "inherit",
+              "@media (max-width: 432px)": { fontSize: "1rem" },
+            }}
+          >
+            <ListIcon />
+          </IconButton>
+          <IconButton
+            onClick={() => handleViewChange("card")}
+            sx={{
+              color: view === "card" ? "blue" : "inherit",
+              "@media (max-width: 432px)": { display: "none" },
+            }}
+          >
+            <GridViewIcon />
+          </IconButton>
+          <IconButton
+            onClick={() => handleViewChange("table")}
+            sx={{
+              color: view === "table" ? "blue" : "inherit",
+              "@media (max-width: 432px)": { display: "none" },
+            }}
+          >
+            <TableChartIcon />
+          </IconButton>
+        </Box>
+
+        <Box
+          boxShadow="3px 2px 15px 3px rgba(100, 100, 100, 0.8)"
+          p="1rem"
+          sx={{
+            backgroundColor: "primary.main",
+            color: "white",
+          }}
+        >
+          <Typography
+            sx={{
+              textTransform: "uppercase",
+              fontSize: {
+                xs: "12px",
+                sm: "18px",
+                md: "25px",
+              },
+              fontWeight: "bold",
+              textAlign: "center",
+            }}
+          >
+            TRIP TICKET AND REQUESTS MANAGEMENT
+          </Typography>
+        </Box>
+
         <Box
           sx={{
-            display: view === "list" ? "block" : "grid",
-            gridTemplateColumns: view === "card" ? "repeat(4, 1fr)" : "none", // Adjust grid for card view
-            gap: 2,
-            "@media (max-width: 1200px)": {
-              gridTemplateColumns: view === "card" ? "repeat(3, 1fr)" : "none",
-            },
-            "@media (max-width: 900px)": {
-              gridTemplateColumns: view === "card" ? "repeat(2, 1fr)" : "none",
-            },
+            display: "flex",
+            my: 5,
+            alignItems: "center",
+            justifyContent: "space-between", // spread filters across the row
+          }}
+        >
+          {/* Left side: status + search */}
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <TextField
+              select
+              value={statusFilter || ""}
+              onChange={handleStatusFilterChange}
+              sx={{ width: 200 }}
+            >
+              <MenuItem value="">All Status</MenuItem>
+              <MenuItem value="Approved">Approved</MenuItem>
+              <MenuItem value="Pending">Pending</MenuItem>
+            </TextField>
+
+            <TextField
+              label="Search destination"
+              value={destinationFilter}
+              onChange={handleDestinationFilterChange}
+              sx={{ width: 300 }}
+            />
+          </Box>
+
+          {/* Right side: date filters */}
+          <Box sx={{ display: "flex", gap: 2 }}>
+            <Button
+              size="small"
+              variant="outlined"
+              color="secondary"
+              onClick={() => {
+                setStartDate(null);
+                setEndDate(null);
+              }}
+              // sx={{ ml: 2 }}
+            >
+              Reset Date
+            </Button>
+            <DatePicker
+              label="Start Date"
+              value={startDate}
+              onChange={(newValue) => setStartDate(newValue)}
+              slotProps={{ textField: { size: "small" } }}
+            />
+            <DatePicker
+              label="End Date"
+              value={endDate}
+              onChange={(newValue) => setEndDate(newValue)}
+              slotProps={{ textField: { size: "small" } }}
+            />
+          </Box>
+        </Box>
+
+        <Box
+          boxShadow="3px 2px 15px 3px rgba(100, 100, 100, 0.8)"
+          p="1rem"
+          sx={{
+            backgroundColor: "rgba(240, 240, 240, 1)",
+            my: 5,
+
             "@media (max-width: 600px)": {
-              gridTemplateColumns: view === "card" ? "1fr" : "none",
+              my: 2, // Less margin on mobile
+              width: "100%",
             },
           }}
         >
-          {view === "table" ? (
-            <AdminTable data={paginatedData} loadingState={loading} />
-          ) : (
-            paginatedData.map((ticket) => (
-              <Box
-                key={ticket.id}
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 2,
-                  backgroundColor: "#fff",
-                  border: "2px dashed #ccc",
-                  borderRadius: "15px",
-                  padding: "20px",
-                  marginTop: "20px",
-                  boxShadow: "2px 2px 10px rgba(0,0,0,0.1)",
-                  height: "auto",
-                  "@media (max-width: 600px)": {
-                    padding: "15px", // Less padding for mobile
-                    marginTop: "10px", // Less margin on mobile
-                  },
-                }}
-              >
+          <Divider>
+            <Typography
+              sx={{
+                textTransform: "uppercase",
+                fontSize: "25px", // Default font size
+                fontWeight: "bold",
+                mb: 2,
+                "@media (max-width: 600px)": {
+                  fontSize: "20px", // Smaller font size for mobile
+                },
+              }}
+            >
+              TRIP TICKET LIST
+            </Typography>
+          </Divider>
+
+          {/* Trip Ticket Card Style */}
+          <Box
+            sx={{
+              display: view === "list" ? "block" : "grid",
+              gridTemplateColumns: view === "card" ? "repeat(4, 1fr)" : "none", // Adjust grid for card view
+              gap: 2,
+              "@media (max-width: 1200px)": {
+                gridTemplateColumns:
+                  view === "card" ? "repeat(3, 1fr)" : "none",
+              },
+              "@media (max-width: 900px)": {
+                gridTemplateColumns:
+                  view === "card" ? "repeat(2, 1fr)" : "none",
+              },
+              "@media (max-width: 600px)": {
+                gridTemplateColumns: view === "card" ? "1fr" : "none",
+              },
+            }}
+          >
+            {view === "table" ? (
+              <AdminTable data={paginatedData} loadingState={loading} />
+            ) : (
+              paginatedData.map((ticket) => (
                 <Box
+                  key={ticket.id}
                   sx={{
                     display: "flex",
-                    justifyContent: "space-between",
-                    flexWrap: "wrap",
-                  }}
-                >
-                  <Box sx={{ minWidth: "200px" }}>
-                    <Typography
-                      variant="h6"
-                      fontWeight="bold"
-                      sx={{
-                        fontSize: "16px", // Smaller font size for ticket details
-                        "@media (max-width: 600px)": {
-                          fontSize: "14px", // Reduce font size for mobile
-                        },
-                      }}
-                    >
-                      Requestor: {ticket.requestedBy}
-                    </Typography>
-                    <Typography sx={{ fontSize: "14px" }}>
-                      Office: {ticket.requestorOffice}
-                    </Typography>
-                    <Typography sx={{ fontSize: "14px" }}>
-                      Designation: {ticket.designation}
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontSize: "14px",
-                        color:
-                          ticket.status === "Approved"
-                            ? "green" // Green for Approved
-                            : ticket.status === "Rejected"
-                            ? "red" // Red for Rejected
-                            : ticket.status === "Pending"
-                            ? "orange" // Orange for Pending
-                            : "black", // Default color if status is something else
-                      }}
-                    >
-                      Status: {ticket.status}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ minWidth: "200px" }}>
-                    <Typography
-                      variant="h6"
-                      fontWeight="bold"
-                      sx={{
-                        fontSize: "16px", // Smaller font size for ticket details
-                        "@media (max-width: 600px)": {
-                          fontSize: "14px", // Reduce font size for mobile
-                        },
-                      }}
-                    >
-                      Destination: {ticket.destination}
-                    </Typography>
-                    <Typography sx={{ fontSize: "14px" }}>
-                      Purpose: {ticket.purpose}
-                    </Typography>
-                    <Typography sx={{ fontSize: "14px" }}>
-                      Departure: {formatDate(ticket.departureDate)} -{" "}
-                      {formatTime(ticket.departureTime)}
-                    </Typography>
-                    <Typography sx={{ fontSize: "14px" }}>
-                      Arrival: {formatDate(ticket.arrivalDate)} -{" "}
-                      {formatTime(ticket.arrivalTime)}
-                    </Typography>
-                  </Box>
-                </Box>
-
-                <Box>
-                  <Typography sx={{ fontSize: "14px" }}>
-                    Authorized Passengers:{" "}
-                    <strong>{ticket.authorizedPassengers}</strong>
-                  </Typography>
-                  <Typography sx={{ fontSize: "14px" }}>
-                    Submitted: {formatDate(ticket.created_at)}
-                  </Typography>
-                </Box>
-
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: view === "list" ? "flex-end" : "flex-end",
-                    mt: 2,
+                    flexDirection: "column",
                     gap: 2,
+                    backgroundColor: "#fff",
+                    border: "2px dashed #ccc",
+                    borderRadius: "15px",
+                    padding: "20px",
+                    marginTop: "20px",
+                    boxShadow: "2px 2px 10px rgba(0,0,0,0.1)",
+                    height: "auto",
+                    "@media (max-width: 600px)": {
+                      padding: "15px", // Less padding for mobile
+                      marginTop: "10px", // Less margin on mobile
+                    },
                   }}
                 >
-                  <Button
-                    variant="contained"
-                    color="primary"
+                  <Box
                     sx={{
-                      width: view === "list" ? "10%" : "40%", // Smaller width in list view
+                      display: "flex",
+                      justifyContent: "space-between",
+                      flexWrap: "wrap",
                     }}
-                    onClick={() => handleUpdate(ticket)} // Handle the update action
                   >
-                    View
-                  </Button>
+                    <Box sx={{ minWidth: "200px" }}>
+                      <Typography
+                        variant="h6"
+                        fontWeight="bold"
+                        sx={{
+                          fontSize: "16px", // Smaller font size for ticket details
+                          "@media (max-width: 600px)": {
+                            fontSize: "14px", // Reduce font size for mobile
+                          },
+                        }}
+                      >
+                        Requestor: {ticket.requestedBy}
+                      </Typography>
+                      <Typography sx={{ fontSize: "14px" }}>
+                        Office: {ticket.requestorOffice}
+                      </Typography>
+                      <Typography sx={{ fontSize: "14px" }}>
+                        Designation: {ticket.designation}
+                      </Typography>
+                      <Typography
+                        sx={{
+                          fontSize: "14px",
+                          color:
+                            ticket.status === "Approved"
+                              ? "green" // Green for Approved
+                              : ticket.status === "Rejected"
+                              ? "red" // Red for Rejected
+                              : ticket.status === "Pending"
+                              ? "orange" // Orange for Pending
+                              : "black", // Default color if status is something else
+                        }}
+                      >
+                        Status: {ticket.status}
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ minWidth: "200px" }}>
+                      <Typography
+                        variant="h6"
+                        fontWeight="bold"
+                        sx={{
+                          fontSize: "16px", // Smaller font size for ticket details
+                          "@media (max-width: 600px)": {
+                            fontSize: "14px", // Reduce font size for mobile
+                          },
+                        }}
+                      >
+                        Destination: {ticket.destination}
+                      </Typography>
+                      <Typography sx={{ fontSize: "14px" }}>
+                        Purpose: {ticket.purpose}
+                      </Typography>
+                      <Typography sx={{ fontSize: "14px" }}>
+                        Departure: {formatDate(ticket.departureDate)} -{" "}
+                        {formatTime(ticket.departureTime)}
+                      </Typography>
+                      <Typography sx={{ fontSize: "14px" }}>
+                        Arrival: {formatDate(ticket.arrivalDate)} -{" "}
+                        {formatTime(ticket.arrivalTime)}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Box>
+                    <Typography sx={{ fontSize: "14px" }}>
+                      Authorized Passengers:{" "}
+                      <strong>{ticket.authorizedPassengers}</strong>
+                    </Typography>
+                    <Typography sx={{ fontSize: "14px" }}>
+                      Submitted: {formatDate(ticket.created_at)}
+                    </Typography>
+                  </Box>
+
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: view === "list" ? "flex-end" : "flex-end",
+                      mt: 2,
+                      gap: 2,
+                    }}
+                  >
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      sx={{
+                        width: view === "list" ? "10%" : "40%", // Smaller width in list view
+                      }}
+                      onClick={() => handleUpdate(ticket)} // Handle the update action
+                    >
+                      View
+                    </Button>
+                  </Box>
                 </Box>
-              </Box>
-            ))
-          )}
+              ))
+            )}
+          </Box>
+
+          <UpdateTicketModal
+            open={openModal}
+            onClose={() => setOpenModal(false)}
+            ticket={selectedTicket}
+          />
+
+          <TablePagination
+            rowsPerPageOptions={[10, 25, 50]}
+            component="div"
+            count={filteredData.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
         </Box>
-
-        <UpdateTicketModal
-          open={openModal}
-          onClose={() => setOpenModal(false)}
-          ticket={selectedTicket}
-        />
-
-        <TablePagination
-          rowsPerPageOptions={[10, 25, 50]}
-          component="div"
-          count={filteredData.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
       </Box>
-    </Box>
+    </LocalizationProvider>
   );
 }

@@ -8,8 +8,14 @@ function getAllOffices() {
   return axios.get(`${BASE_URL}/ticket/getAllOffices`).then((res) => res.data);
 }
 
-function getAllRequests() {
-  return axios.get(`${BASE_URL}/ticket/getAllRequests`).then((res) => res.data);
+function getAllRequests(startDate, endDate) {
+  const params = {};
+  if (startDate) params.startDate = startDate;
+  if (endDate) params.endDate = endDate;
+
+  return axios
+    .get(`${BASE_URL}/ticket/getAllRequests`, { params })
+    .then((res) => res.data);
 }
 
 function getAllVehicles() {
