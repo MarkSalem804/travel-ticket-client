@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-alert */
 /* eslint-disable react/jsx-no-useless-fragment */
 /* eslint-disable no-unused-vars */
@@ -31,6 +32,8 @@ import UpdateTicketModal from "../../../modals/Tickets/UpdateTicketModal";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import * as XLSX from "xlsx";
+import dayjs from "dayjs";
 
 export default function ApprovedTravels() {
   const { auth, updateNewTicketsCount } = useStateContext();
@@ -63,11 +66,22 @@ export default function ApprovedTravels() {
       try {
         const response = await ticketService.getAllRequests(startDate, endDate);
 
-        const filteredResponse = response.filter(
-          (ticket) => ticket.status === "Approved"
-        );
+        let filteredData;
 
-        setData(filteredResponse);
+        if (auth.username === "homer.mendoza004@deped.gov.ph") {
+          filteredData = response.filter(
+            (data) =>
+              (data.email === "maricel.aureo@deped.gov.ph" ||
+                data.email === "ronnie.yohan@deped.gov.ph") &&
+              data.status === "Approved"
+          );
+        } else {
+          filteredData = response.filter(
+            (ticket) => ticket.status === "Approved"
+          );
+        }
+
+        setData(filteredData);
       } catch (err) {
         console.error(err);
         setError("Failed to fetch trip ticket data.");
@@ -145,6 +159,33 @@ export default function ApprovedTravels() {
   const handleViewChange = (newView) => {
     setView(newView);
     localStorage.setItem("view", newView); // Save the selected view to localStorage
+  };
+
+  const handleExportReport = async () => {
+    try {
+      const formattedStartDate = dayjs(startDate).format("YYYY-MM-DD");
+      const formattedEndDate = dayjs(endDate).format("YYYY-MM-DD");
+
+      const response = await ticketService.getTravelReport(
+        formattedStartDate,
+        formattedEndDate
+      );
+
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "Approved_Travels_Report.xlsx");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Export failed:", error);
+    }
   };
 
   return (
@@ -483,15 +524,34 @@ export default function ApprovedTravels() {
             ticket={selectedTicket}
           />
 
-          <TablePagination
-            rowsPerPageOptions={[10, 25, 50]}
-            component="div"
-            count={filteredData.length}
-            rowsPerPage={rowsPerPage}
-            page={page}
-            onPageChange={handleChangePage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-          />
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mt: 3,
+              flexWrap: "wrap",
+              gap: 2,
+            }}
+          >
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleExportReport}
+            >
+              Export Report
+            </Button>
+
+            <TablePagination
+              rowsPerPageOptions={[10, 25, 50]}
+              component="div"
+              count={filteredData.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+          </Box>
         </Box>
       </Box>
     </LocalizationProvider>

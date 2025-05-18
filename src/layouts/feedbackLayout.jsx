@@ -16,12 +16,14 @@ import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import DepartureBoardIcon from "@mui/icons-material/DepartureBoard";
 import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
 import ListAltIcon from "@mui/icons-material/ListAlt";
+import BadgeIcon from "@mui/icons-material/Badge";
 
 const FormLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isFullPage =
     location.pathname === "/TodaysTravels" ||
+    location.pathname === "/EmployeesTravels" ||
     location.pathname === "/UrgentTravels";
 
   const theme = useTheme();
@@ -65,7 +67,7 @@ const FormLayout = () => {
               flexGrow: 1,
             }}
           >
-            TRIP TICKETING SYSTEM
+            TRIP TRACKING AND TICKET SYSTEM
           </Typography>
 
           <Box
@@ -77,6 +79,12 @@ const FormLayout = () => {
           >
             {isDesktop ? (
               <>
+                <Typography
+                  sx={{ color: "white", cursor: "pointer", fontSize: "1rem" }}
+                  onClick={() => handleRedirect("./EmployeesTravels")}
+                >
+                  EMPLOYEE'S TRIPS
+                </Typography>
                 <Typography
                   sx={{ color: "white", cursor: "pointer", fontSize: "1rem" }}
                   onClick={() => handleRedirect("./UrgentTravels")}
@@ -104,6 +112,18 @@ const FormLayout = () => {
               </>
             ) : (
               <>
+                <Tooltip
+                  title="Employee's Trips"
+                  onClick={() => handleRedirect("./EmployeesTravels")}
+                >
+                  <BadgeIcon
+                    sx={{
+                      fontSize: { xs: 20, sm: 35 },
+                      color: "white",
+                      cursor: "pointer",
+                    }}
+                  />
+                </Tooltip>
                 <Tooltip
                   title="Urgent Trips"
                   onClick={() => handleRedirect("./UrgentTravels")}

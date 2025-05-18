@@ -62,9 +62,9 @@ export default function ApprovedTable({ data, loadingState }) {
       valueGetter: (params) =>
         `${formatDate(params.value)} — ${formatTime(params.value)}`,
     },
+    { field: "travelStatus", headerName: "Travel Status", width: 250 },
     { field: "requestedBy", headerName: "Requestor", width: 250 },
     { field: "destination", headerName: "Destination", width: 250 },
-    { field: "status", headerName: "Status", width: 250 },
     { field: "driverName", headerName: "Driver", width: 250 },
     { field: "plateNumber", headerName: "Plate Number", width: 250 },
     { field: "vehicleName", headerName: "Vehicle", width: 250 },

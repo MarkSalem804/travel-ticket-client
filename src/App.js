@@ -14,6 +14,7 @@ import {
   TodaysTravelsPage,
   UrgentTravels,
   ApprovedTravels,
+  EmployeesTravels,
 } from "./pages";
 import RequireAuth from "./contexts/RequireAuth";
 
@@ -30,6 +31,7 @@ function App() {
           <Route path="/Authenticate" element={<Login />} />
           <Route path="/TodaysTravels" element={<TodaysTravelsPage />} />
           <Route path="/UrgentTravels" element={<UrgentTravels />} />
+          <Route path="/EmployeesTravels" element={<EmployeesTravels />} />
         </Route>
 
         <Route element={<RequireAuth allowedRoles={roles} />}>

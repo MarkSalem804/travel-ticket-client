@@ -1,8 +1,15 @@
 /* eslint-disable import/no-anonymous-default-export */
 import axios from "axios";
 
-const BASE_URL = "http://localhost:8050";
-// const BASE_URL = "https://tripticket.depedimuscity.com:8050";
+// const BASE_URL = "http://localhost:8050";
+const BASE_URL = "https://tripticket.depedimuscity.com:8050";
+
+function getTravelReport(startDate, endDate) {
+  return axios.get(`${BASE_URL}/ticket/travelReportData`, {
+    params: { startDate, endDate },
+    responseType: "blob",
+  });
+}
 
 function getAllOffices() {
   return axios.get(`${BASE_URL}/ticket/getAllOffices`).then((res) => res.data);
@@ -87,10 +94,6 @@ function viewAttachment(requestId) {
 }
 
 function travelOut(data) {
-  console.log("🚀 [travelOut] Sending request to backend...");
-  console.log("➡️ [travelOut] Data being sent:", data);
-  console.log("🆔 [travelOut] requestId being sent:", data.id);
-
   return axios
     .post(`${BASE_URL}/ticket/travelOut`, data)
     .then((res) => {
@@ -143,8 +146,25 @@ function urgentTap(rfid) {
     });
 }
 
+function urgentTapToRequestForm(rfid) {
+  console.log("🚨 [urgentTap] Tapping RFID:", rfid);
+
+  return axios
+    .post(`${BASE_URL}/ticket/urgentTapToForm`, { rfid })
+    .then((res) => {
+      console.log("✅ [urgentTap] API response:", res);
+      return res.data;
+    })
+    .catch((error) => {
+      console.error("❌ [urgentTap] API error:", error);
+      throw error;
+    });
+}
+
 export default {
+  getTravelReport,
   getAllUrgentTrips,
+  urgentTapToRequestForm,
   urgentTap,
   getRequestByRFIDandId,
   travelOut,

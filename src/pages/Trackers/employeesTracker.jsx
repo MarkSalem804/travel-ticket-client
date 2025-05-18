@@ -28,13 +28,16 @@ import {
 } from "@mui/material";
 import ticketService from "../../services/ticket-service"; // Make sure to import your axios function
 
-const UrgentTravels = () => {
+const EmployeesTravels = () => {
   const [loading, setLoading] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [travels, setTravels] = useState([]);
   const [rfidInput, setRfidInput] = useState("");
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
+  const [snackbarSeverity, setSnackbarSeverity] = useState("info");
+  const [govDialogOpen, setGovDialogOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const inputRef = useRef(null);
@@ -47,13 +50,25 @@ const UrgentTravels = () => {
     try {
       setLoading(true);
       const data = await ticketService.getAllUrgentTrips();
-      console.log("✅ [fetchUrgentTrips] Data loaded:", data);
 
-      const includedDrivers = ["Wilfredo P. Estopace", "Roberto D. Baarde jr"];
+      const excludedDrivers = [
+        "Wilfredo P. Estopace",
+        "Roberto D. Baarde jr",
+        "Salem Mark",
+        "Joseph Salem",
+      ];
 
-      const filteredData = data.filter((trip) =>
-        includedDrivers.includes(trip.driverName || trip.ownerName)
-      );
+      const filteredData = data.filter((trip) => {
+        const driver = trip.driverName || trip.ownerName;
+        const vehicleType = trip.vehicles?.type;
+
+        return (
+          !excludedDrivers.includes(driver) &&
+          vehicleType !== "Government (Red Plate)"
+        );
+      });
+
+      console.log(filteredData);
 
       setTravels(filteredData); // 👈 update the table data
     } catch (error) {
@@ -76,7 +91,7 @@ const UrgentTravels = () => {
         inputRef.current.focus();
         console.log("✅ [handleTopScanButton] Focused on RFID input field.");
       }
-    }, 100); // Ensure focus happens after dialog opens
+    }, 100);
   };
 
   const handleCloseDialog = () => {
@@ -98,7 +113,21 @@ const UrgentTravels = () => {
       try {
         const data = await ticketService.urgentTap(scannedRfid);
         console.log("✅ [API Response] Successfully processed RFID:", data);
+
+        const vehicleType = data?.vehicles?.type || data?.type;
+
+        if (vehicleType === "Government (Red Plate)") {
+          console.warn(
+            "🚫 Vehicle type is Government (Red Plate) — not allowed."
+          );
+          setSnackbarMessage("Only for Private Vehicles.");
+          setSnackbarSeverity("error"); // Optional if you use a severity prop
+          setSnackbarOpen(true);
+          return; // 🛑 Stop here — no further processing
+        }
+
         setSnackbarMessage("RFID scanned successfully!");
+        setSnackbarSeverity("success"); // Optional
         setSnackbarOpen(true);
 
         await fetchUrgentTrips(); // ✅ WAIT for the table to update
@@ -106,7 +135,16 @@ const UrgentTravels = () => {
         handleCloseDialog(); // ✅ Finally close the dialog cleanly
       } catch (error) {
         console.error("❌ [API Error] Error processing RFID:", error);
+
+        if (error?.response?.data?.message === "Only for Private Vehicles") {
+          setGovDialogOpen(true);
+          setRfidInput("");
+          handleCloseDialog();
+          return;
+        }
+
         setSnackbarMessage("Error scanning RFID, please try again.");
+        setSnackbarSeverity("error");
         setSnackbarOpen(true);
       }
     }
@@ -148,7 +186,7 @@ const UrgentTravels = () => {
             variant="h5"
             sx={{ fontWeight: "bold", fontFamily: "Poppins" }}
           >
-            URGENT TRIPS
+            EMPLOYEE'S VEHICLE LOGS
           </Typography>
           <Button
             variant="contained"
@@ -184,21 +222,18 @@ const UrgentTravels = () => {
                     </Box>
                     <Divider sx={{ mb: 1 }} />
                     <Typography variant="body2">
-                      <strong>DRIVER</strong> {travel.driverName}
-                    </Typography>
-                    <Typography variant="body2">
                       <strong>VEHICLE</strong> {travel.vehicleName}
                     </Typography>
                     <Typography variant="body2">
                       <strong>PLATE</strong> {travel.plateNo}
                     </Typography>
                     <Typography variant="body2">
-                      <strong>DEPARTURE</strong>{" "}
-                      {travel.arrival ? formatTime(travel.arrival) : "—"}
-                    </Typography>
-                    <Typography variant="body2">
                       <strong>ARRIVAL</strong>{" "}
                       {travel.departure ? formatTime(travel.departure) : "—"}
+                    </Typography>
+                    <Typography variant="body2">
+                      <strong>DEPARTURE</strong>{" "}
+                      {travel.arrival ? formatTime(travel.arrival) : "—"}
                     </Typography>
                   </CardContent>
                 </Card>
@@ -210,15 +245,6 @@ const UrgentTravels = () => {
             <Table stickyHeader>
               <TableHead>
                 <TableRow>
-                  <TableCell
-                    sx={{
-                      backgroundColor: "#1976d2",
-                      color: "#fff",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    DRIVER
-                  </TableCell>
                   <TableCell
                     sx={{
                       backgroundColor: "#1976d2",
@@ -244,7 +270,7 @@ const UrgentTravels = () => {
                       fontWeight: "bold",
                     }}
                   >
-                    DEPARTURE
+                    ARRIVAL
                   </TableCell>
                   <TableCell
                     sx={{
@@ -253,14 +279,13 @@ const UrgentTravels = () => {
                       fontWeight: "bold",
                     }}
                   >
-                    ARRIVAL
+                    DEPARTURE
                   </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {travels.map((travel) => (
                   <TableRow key={travel.id}>
-                    <TableCell>{travel.driverName}</TableCell>
                     <TableCell>{travel.vehicleName}</TableCell>
                     <TableCell>{travel.plateNo}</TableCell>
                     <TableCell>
@@ -281,20 +306,12 @@ const UrgentTravels = () => {
       <Dialog
         open={openDialog}
         onClose={handleCloseDialog}
-        sx={{
-          "& .MuiDialog-paper": {
-            width: "90%",
-            maxWidth: "500px",
-          },
-        }}
+        fullWidth
+        maxWidth="xs"
       >
-        <DialogTitle>RFID Scan</DialogTitle>
+        <DialogTitle>Scan RFID</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            Please tap your RFID card on the reader.
-          </DialogContentText>
-
-          {/* 👇 Here's the new TextField */}
+          <DialogContentText>Please scan your RFID</DialogContentText>
           <TextField
             autoFocus
             margin="dense"
@@ -308,9 +325,31 @@ const UrgentTravels = () => {
           />
         </DialogContent>
         <DialogActions>
-          <Button variant="contained" onClick={handleCloseDialog}>
-            Close
+          <Button onClick={handleCloseDialog}>Cancel</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={showErrorDialog} onClose={() => setShowErrorDialog(false)}>
+        <DialogTitle>Notice</DialogTitle>
+        <DialogContent>
+          <DialogContentText>Only for Private Vehicles.</DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setShowErrorDialog(false)} autoFocus>
+            OK
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={govDialogOpen} onClose={() => setGovDialogOpen(false)}>
+        <DialogTitle>Process Failed</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            This functionality is only for private vehicles.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setGovDialogOpen(false)}>Close</Button>
         </DialogActions>
       </Dialog>
 
@@ -322,7 +361,7 @@ const UrgentTravels = () => {
       >
         <Alert
           onClose={() => setSnackbarOpen(false)}
-          severity={snackbarMessage.includes("Error") ? "error" : "success"}
+          severity={snackbarSeverity}
           sx={{ width: "100%" }}
         >
           {snackbarMessage}
@@ -332,4 +371,4 @@ const UrgentTravels = () => {
   );
 };
 
-export default UrgentTravels;
+export default EmployeesTravels;

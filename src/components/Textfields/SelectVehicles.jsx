@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from "react";
 import {
   Box,
@@ -37,9 +38,12 @@ export default function SelectOffice({
     ticketService
       .getAllVehicles()
       .then((response) => {
-        setVehicles(response); // Make sure offices is always an array
+        const filteredVehicles = response.filter(
+          (vehicles) => vehicles.type === "Government (Red Plate)"
+        );
+        setVehicles(filteredVehicles); // Make sure offices is always an array
         setSelectedVehicle(
-          response.find((office) => office.id === value) || null
+          filteredVehicles.find((office) => office.id === value) || null
         );
       })
       .catch((err) => {

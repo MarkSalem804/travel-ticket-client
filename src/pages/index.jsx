@@ -7,3 +7,4 @@ export { default as UserPage } from "../pages/Administration/UserManagement";
 export { default as TodaysTravelsPage } from "../pages/Trackers/travelTracker";
 export { default as UrgentTravels } from "../pages/Trackers/urgentTravels";
 export { default as ApprovedTravels } from "../pages/Administration/ApprovedTravels";
+export { default as EmployeesTravels } from "../pages/Trackers/employeesTracker";

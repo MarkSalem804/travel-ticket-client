@@ -8,6 +8,7 @@ import {
   CardContent,
   Grid,
   Divider,
+  TextField,
 } from "@mui/material";
 import {
   Container,
@@ -28,6 +29,7 @@ import {
   Button,
   Box,
 } from "@mui/material";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import AdfScannerSharpIcon from "@mui/icons-material/AdfScannerSharp";
 import ticketService from "../../services/ticket-service";
 import NewspaperIcon from "@mui/icons-material/Newspaper";
@@ -36,18 +38,33 @@ import { io } from "socket.io-client";
 
 const TodaysTravelPage = () => {
   const [travels, setTravels] = useState([]);
+  const [rfidBuffer, setRfidBuffer] = useState("");
+  const debounceRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [selectedTravel, setSelectedTravel] = useState(null);
   const [scanDialogOpen, setScanDialogOpen] = useState(false);
+  const [rfidProcessing, setRfidProcessing] = useState(false);
   const [messageDialogOpen, setMessageDialogOpen] = useState(false);
   const [messageText, setMessageText] = useState("");
   const [rfidInput, setRfidInput] = useState("");
   const [viewOpen, setViewOpen] = useState(false);
+  const [urgentRFIDDialogOpen, setUrgentRFIDDialogOpen] = useState(false);
+  const [urgentRFIDInput, setUrgentRFIDInput] = useState("");
   const [viewData, setViewData] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const inputRef = useRef();
   const socketRef = useRef(null);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (urgentRFIDDialogOpen) {
+      console.log("inputRef.current on open:", inputRef.current);
+      const frame = requestAnimationFrame(() => {
+        inputRef.current?.focus();
+      });
+      return () => cancelAnimationFrame(frame);
+    }
+  }, [urgentRFIDDialogOpen]);
 
   useEffect(() => {
     const fetchTravels = async () => {
@@ -55,7 +72,7 @@ const TodaysTravelPage = () => {
         const data = await ticketService.getTodaysRequests();
         console.log("Fetched today's travels (raw):", data);
         const approvedTravels = data.filter(
-          (item) => item.status === "Approved"
+          (item) => item.status === "Approved" || item.status === "Urgent"
         );
         console.log("Filtered approved travels:", approvedTravels);
         setTravels(approvedTravels);
@@ -117,6 +134,8 @@ const TodaysTravelPage = () => {
   }, [selectedTravel]);
 
   useEffect(() => {
+    if (!scanDialogOpen || !selectedTravel) return;
+
     const handleKeyDown = (e) => {
       if (e.key === "Enter" || e.key === "Tab") {
         handleRFIDInput();
@@ -126,11 +145,14 @@ const TodaysTravelPage = () => {
     };
 
     window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [scanDialogOpen, selectedTravel]);
 
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [rfidInput]);
+  useEffect(() => {
+    if (scanDialogOpen) {
+      inputRef.current?.focus();
+    }
+  }, [scanDialogOpen]);
 
   const handleScan = (travel) => {
     console.log("Scan icon clicked. Selected travel:", travel);
@@ -143,71 +165,107 @@ const TodaysTravelPage = () => {
     setRfidInput(""); // Clear RFID input on close
   };
 
+  const handleCloseDialog = () => {
+    console.log("❌ [handleCloseDialog] Closing RFID dialog.");
+    setUrgentRFIDDialogOpen(false);
+
+    // also clear RFID input in case it wasn't cleared
+    setUrgentRFIDInput("");
+  };
+
   const showMessage = (msg) => {
     setMessageText(msg);
     setMessageDialogOpen(true);
   };
 
   const handleRFIDInput = async () => {
-    console.log("handleRFIDInput triggered"); // Debugging to see if it's being called
+    console.log("handleRFIDInput triggered");
     const rfid = rfidInput.trim();
     console.log("RFID input received:", rfid);
 
+    if (rfidProcessing) return; // prevent double-processing
+    setRfidProcessing(true);
+
+    // If RFID input is empty, treat it as invalid and close dialog early
     if (!rfid) {
       console.warn("Empty RFID input, ignoring.");
       closeScanDialog();
+      setRfidProcessing(false);
       return;
     }
 
-    if (rfid !== selectedTravel.rfid) {
-      console.warn(
-        `Mismatched RFID — Expected: ${selectedTravel.rfid}, Got: ${rfid}`
-      );
-      closeScanDialog();
-      showMessage("Invalid RFID for this trip.");
-      return;
-    }
-
-    try {
-      if (!selectedTravel.travelOut) {
-        console.log("Calling travelOut API with:", {
-          id: selectedTravel.id,
-          rfid,
-        });
-        const res = await ticketService.travelOut({
-          id: selectedTravel.id,
-          rfid,
-        });
-        console.log("travelOut API response:", res);
+    // CASE 1: A travel is selected (normal scan flow)
+    if (selectedTravel) {
+      if (rfid !== selectedTravel.rfid) {
+        console.warn(
+          `Mismatched RFID — Expected: ${selectedTravel.rfid}, Got: ${rfid}`
+        );
         closeScanDialog();
-        showMessage("Travel out recorded!");
-      } else if (!selectedTravel.travelIn) {
-        console.log("Calling travelIn API with:", {
-          id: selectedTravel.id,
-          rfid,
-        });
-        const res = await ticketService.travelIn({
-          id: selectedTravel.id,
-          rfid,
-        });
-        console.log("travelIn API response:", res);
-        closeScanDialog();
-        showMessage("Travel in recorded!");
-      } else {
-        closeScanDialog();
-        showMessage("Travel already completed.");
-        console.log("No API call made: travel already completed.");
+        showMessage("Invalid RFID for this trip.");
+        setRfidProcessing(false);
+        return;
       }
 
+      try {
+        if (!selectedTravel.travelOut) {
+          const res = await ticketService.travelOut({
+            id: selectedTravel.id,
+            rfid,
+          });
+          console.log("travelOut API response:", res);
+          closeScanDialog();
+          showMessage("Travel out recorded!");
+        } else if (!selectedTravel.travelIn) {
+          const res = await ticketService.travelIn({
+            id: selectedTravel.id,
+            rfid,
+          });
+          console.log("travelIn API response:", res);
+          closeScanDialog();
+          showMessage("Travel in recorded!");
+        } else {
+          closeScanDialog();
+          showMessage("Travel already completed.");
+          console.log("No API call made: travel already completed.");
+        }
+
+        // Refresh travels after operation
+        const updatedTravels = await ticketService.getTodaysRequests();
+        const approvedTravels = updatedTravels.filter(
+          (t) => t.status === "Approved" || t.status === "Urgent"
+        );
+        setTravels(approvedTravels);
+      } catch (err) {
+        console.error("RFID processing error:", err);
+        closeScanDialog();
+        showMessage("Error while processing RFID. See console for details.");
+      } finally {
+        setRfidProcessing(false);
+      }
+
+      return;
+    }
+
+    // CASE 2: No selectedTravel (urgent tap flow)
+    try {
+      const res = await ticketService.urgentTapToRequestForm(rfid);
+      console.log("✅ [urgentTap] Created urgent travel form:", res);
+      showMessage("Urgent travel form created.");
+
+      // Refresh travels after urgent tap
       const updatedTravels = await ticketService.getTodaysRequests();
       const approvedTravels = updatedTravels.filter(
-        (t) => t.status === "Approved"
+        (t) => t.status === "Approved" || t.status === "Urgent"
       );
       setTravels(approvedTravels);
-    } catch (err) {
-      console.error("RFID processing error:", err);
-      closeScanDialog();
-      showMessage("Error while processing RFID. See console for details.");
+    } catch (error) {
+      console.error("❌ [urgentTap] Error creating urgent travel form:", error);
+      showMessage(
+        "Error creating urgent travel form. See console for details."
+      );
+    } finally {
+      setRfidInput("");
+      setRfidProcessing(false);
     }
   };
 
@@ -244,19 +302,59 @@ const TodaysTravelPage = () => {
     }
   };
 
+  const handleUrgentRFIDSubmit = async () => {
+    const rfid = urgentRFIDInput.trim();
+    if (!rfid) {
+      showMessage("Please enter a valid RFID.");
+      return;
+    }
+
+    try {
+      const response = await ticketService.urgentTapToRequestForm(rfid);
+      console.log("Urgent tap response:", response);
+
+      const updatedTravels = await ticketService.getTodaysRequests();
+      const approvedTravels = updatedTravels.filter(
+        (t) => t.status === "Approved" || t.status === "Urgent"
+      );
+      setTravels(approvedTravels);
+
+      setUrgentRFIDDialogOpen(false);
+      setUrgentRFIDInput("");
+    } catch (error) {
+      console.error("Urgent tap error:", error);
+      // showMessage("Failed to process urgent trip. Please try again.");
+    }
+  };
+
   return (
     <Container maxWidth="xxl">
       <Paper elevation={3} sx={{ padding: 4, marginTop: 4 }}>
-        <Typography
-          variant="h5"
-          align="center"
-          sx={{ mb: 3, fontWeight: "bold", fontFamily: "Poppins" }}
+        <Box
+          display="flex"
+          alignItems="center"
+          justifyContent="space-between"
+          sx={{ mb: 3 }}
         >
-          TODAY'S TRAVELS
-        </Typography>
+          <Typography
+            variant="h5"
+            sx={{ fontWeight: "bold", fontFamily: "Poppins" }}
+          >
+            TODAY'S TRIPS
+          </Typography>
+
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => setUrgentRFIDDialogOpen(true)}
+          >
+            FOR URGENT TRIPS ONLY
+          </Button>
+        </Box>
 
         {/* Invisible input for RFID */}
         <input
+          onKeyDown={handleRFIDInput}
           type="text"
           ref={inputRef}
           style={{ position: "absolute", top: -100, opacity: 0 }}
@@ -304,8 +402,7 @@ const TodaysTravelPage = () => {
                       {travel.travelIn ? formatTime(travel.travelIn) : "—"}
                     </Typography>
                     <Typography variant="body2">
-                      <strong>Status:</strong>{" "}
-                      {travel.travelStatus || "Pending"}
+                      <strong>Status:</strong> {travel.travelStatus}
                     </Typography>
                   </CardContent>
                 </Card>
@@ -395,18 +492,26 @@ const TodaysTravelPage = () => {
                 {travels.map((travel) => (
                   <TableRow key={travel.id}>
                     <TableCell>
-                      <IconButton
-                        color="primary"
-                        onClick={() => handleScan(travel)}
-                      >
-                        <AdfScannerSharpIcon />
-                      </IconButton>
-                      <IconButton
-                        color="secondary"
-                        onClick={() => handleView(travel)}
-                      >
-                        <NewspaperIcon />
-                      </IconButton>
+                      {travel.status === "Urgent" ? (
+                        <Typography color="error" fontWeight="bold">
+                          URGENT
+                        </Typography>
+                      ) : (
+                        <>
+                          <IconButton
+                            color="primary"
+                            onClick={() => handleScan(travel)}
+                          >
+                            <AdfScannerSharpIcon />
+                          </IconButton>
+                          <IconButton
+                            color="secondary"
+                            onClick={() => handleView(travel)}
+                          >
+                            <NewspaperIcon />
+                          </IconButton>
+                        </>
+                      )}
                     </TableCell>
                     <TableCell
                       sx={{
@@ -437,6 +542,44 @@ const TodaysTravelPage = () => {
         )}
       </Paper>
 
+      <Dialog
+        open={urgentRFIDDialogOpen}
+        onClose={handleCloseDialog}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>Enter RFID for Urgent Trip</DialogTitle>
+        <DialogContent>
+          <TextField
+            // disableEnforceFocus
+            // disableAutoFocus
+            // type="text"
+            // autoFocus
+            inputRef={inputRef}
+            label="RFID"
+            fullWidth
+            value={urgentRFIDInput}
+            onChange={(e) => setUrgentRFIDInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleUrgentRFIDSubmit();
+              }
+            }}
+            sx={{ mt: 2 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setUrgentRFIDDialogOpen(false)}>Cancel</Button>
+          <Button
+            onClick={handleUrgentRFIDSubmit}
+            variant="contained"
+            color="primary"
+          >
+            Submit
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {viewOpen && viewData && (
         <ViewTicketModal
           open={viewOpen}
@@ -448,22 +591,40 @@ const TodaysTravelPage = () => {
       <Dialog
         open={scanDialogOpen}
         onClose={closeScanDialog}
-        sx={{
-          "& .MuiDialog-paper": {
-            width: "90%", // Default width on smaller screens
-            maxWidth: "500px", // Maximum width for larger screens
-          },
-        }}
+        fullWidth
+        maxWidth="xs"
       >
         <DialogTitle>RFID Scan</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            Please tap your RFID card on the reader.
-          </DialogContentText>
+          <TextField
+            inputRef={inputRef}
+            label="RFID"
+            fullWidth
+            value={rfidBuffer}
+            onChange={(e) => {
+              const val = e.target.value;
+
+              // Update buffer immediately
+              setRfidBuffer(val);
+
+              // Clear previous timer
+              if (debounceRef.current) {
+                clearTimeout(debounceRef.current);
+              }
+
+              // Set new timer
+              debounceRef.current = setTimeout(() => {
+                const cleaned = val.replace(/\D/g, "").slice(-10); // adjust length if needed
+                console.log("📥 Final cleaned RFID:", cleaned);
+                setRfidBuffer(""); // reset buffer after processing
+                handleRFIDInput(cleaned); // ⬅️ this is your working logic
+              }, 300); // 300ms of idle = finished typing
+            }}
+          />
         </DialogContent>
       </Dialog>
 
-      <Dialog
+      {/* <Dialog
         open={messageDialogOpen}
         onClose={() => setMessageDialogOpen(false)}
         sx={{
@@ -485,7 +646,7 @@ const TodaysTravelPage = () => {
             OK
           </Button>
         </DialogActions>
-      </Dialog>
+      </Dialog> */}
     </Container>
   );
 };

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-alert */
 /* eslint-disable react/jsx-no-useless-fragment */
 /* eslint-disable no-unused-vars */
@@ -63,11 +64,22 @@ export default function Feedbacks() {
       try {
         const response = await ticketService.getAllRequests(startDate, endDate);
 
-        const filteredResponse = response.filter(
-          (ticket) => ticket.status === "Pending"
-        );
+        let filteredData;
 
-        setData(filteredResponse);
+        if (auth.username === "homer.mendoza004@deped.gov.ph") {
+          filteredData = response.filter(
+            (data) =>
+              (data.email === "maricel.aureo@deped.gov.ph" ||
+                data.email === "ronnie.yohan@deped.gov.ph") &&
+              data.status === "Pending"
+          );
+        } else {
+          filteredData = response.filter(
+            (ticket) => ticket.status === "Pending"
+          );
+        }
+
+        setData(filteredData);
       } catch (err) {
         console.error(err);
         setError("Failed to fetch trip ticket data.");
