@@ -15,6 +15,9 @@ import {
   UrgentTravels,
   ApprovedTravels,
   EmployeesTravels,
+  EmployeeTravel,
+  UrgentTravel,
+  UrgentTodayTravels,
 } from "./pages";
 import RequireAuth from "./contexts/RequireAuth";
 
@@ -41,6 +44,9 @@ function App() {
             <Route path="/Vehicles" element={<VehiclePage />} />
             <Route path="/Drivers" element={<DriverPage />} />
             <Route path="/Users" element={<UserPage />} />
+            <Route path="/UrgentTrips" element={<UrgentTravel />} />
+            <Route path="/EmployeeTrips" element={<EmployeeTravel />} />
+            <Route path="/UrgentTodaysTrips" element={<UrgentTodayTravels />} />
           </Route>
         </Route>
       </Routes>

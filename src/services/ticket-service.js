@@ -25,6 +25,24 @@ function getAllRequests(startDate, endDate) {
     .then((res) => res.data);
 }
 
+function getAllUrgentsNoFilters() {
+  return axios
+    .get(`${BASE_URL}/ticket/getAllUrgentsNoFilters`)
+    .then((res) => res.data);
+}
+
+function getEmployeesNoFilters() {
+  return axios
+    .get(`${BASE_URL}/ticket/getAllEmployeesNoFilters`)
+    .then((res) => res.data);
+}
+
+function getUrgentTodayTrip() {
+  return axios
+    .get(`${BASE_URL}/ticket/getAllUrgentTodayTrip`)
+    .then((res) => res.data);
+}
+
 function getAllVehicles() {
   return axios.get(`${BASE_URL}/ticket/getAllVehicles`).then((res) => res.data);
 }
@@ -86,6 +104,18 @@ function deleteVehicle(vehicleId) {
 function deleteDriver(driverId) {
   return axios
     .delete(`${BASE_URL}/ticket/deleteDriver/${driverId}`)
+    .then((res) => res.data);
+}
+
+function deleteUrgent(id) {
+  return axios
+    .delete(`${BASE_URL}/ticket/deleteUrgentTrip/${id}`)
+    .then((res) => res.data);
+}
+
+function deleteTodayUrgent(id) {
+  return axios
+    .delete(`${BASE_URL}/ticket/deleteTodayTrip/${id}`)
     .then((res) => res.data);
 }
 
@@ -162,6 +192,9 @@ function urgentTapToRequestForm(rfid) {
 }
 
 export default {
+  getUrgentTodayTrip,
+  getEmployeesNoFilters,
+  getAllUrgentsNoFilters,
   getTravelReport,
   getAllUrgentTrips,
   urgentTapToRequestForm,
@@ -176,6 +209,8 @@ export default {
   updateVehicle,
   deleteVehicle,
   deleteDriver,
+  deleteTodayUrgent,
+  deleteUrgent,
   submitTicket,
   getTodaysRequests,
   getAllOffices,

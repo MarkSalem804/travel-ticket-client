@@ -597,6 +597,7 @@ const TodaysTravelPage = () => {
         <DialogTitle>RFID Scan</DialogTitle>
         <DialogContent>
           <TextField
+            sx={{ mt: 2 }}
             inputRef={inputRef}
             label="RFID"
             fullWidth
@@ -615,7 +616,6 @@ const TodaysTravelPage = () => {
               // Set new timer
               debounceRef.current = setTimeout(() => {
                 const cleaned = val.replace(/\D/g, "").slice(-10); // adjust length if needed
-                console.log("📥 Final cleaned RFID:", cleaned);
                 setRfidBuffer(""); // reset buffer after processing
                 handleRFIDInput(cleaned); // ⬅️ this is your working logic
               }, 300); // 300ms of idle = finished typing

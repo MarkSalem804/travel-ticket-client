@@ -406,8 +406,7 @@ const RequestForm = ({ onSubmitSuccess }) => {
 
       <ConfirmationDialog
         open={openDialog}
-        title={loading ? "Processing...." : "Submission Success!"}
-        message="Your request has been submitted successfully!"
+        message={loading ? "Processing...." : "Submission Success!"}
         onConfirm={() => setOpenDialog(false)}
         onCancel={() => setOpenDialog(false)}
       />

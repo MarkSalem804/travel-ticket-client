@@ -148,7 +148,7 @@ const UrgentTravels = () => {
             variant="h5"
             sx={{ fontWeight: "bold", fontFamily: "Poppins" }}
           >
-            URGENT TRIPS
+            TOP MANAGEMENT TRIPS
           </Typography>
           <Button
             variant="contained"
